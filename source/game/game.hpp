@@ -59,6 +59,8 @@ private:
 
   sf::Texture* get_texture(const std::string &name);
 
+  void load_texture(const std::string &name, const std::string fileformat="png");
+
 };
 
 

@@ -72,16 +72,9 @@ void Game::init_window()
 
 void Game::init_textures()
 {
-  sf::Texture player_text;
-  player_text.loadFromFile("assets/player.png");
-
-  m_textures.emplace("player", std::move(player_text));
-
-
-  sf::Texture bg_text;
-  bg_text.loadFromFile("assets/bg.png");
-
-  m_textures.emplace("bg", std::move(bg_text));
+  load_texture("player-idle");
+  load_texture("player-running");
+  load_texture("bg");
 }
 
 void Game::init_map_bg()
@@ -94,7 +87,23 @@ void Game::init_map_bg()
 
 void Game::init_player()
 {
-  m_player = new Player(get_texture("player"));
+  Animation player_idle{
+    get_texture("player-idle"),
+    120,
+    80,
+    100.f,
+    1,
+    10
+  };
+  Animation player_running{
+    get_texture("player-running"),
+    120,
+    80,
+    100.f,
+    1,
+    10
+  };
+  m_player = new Player(player_idle, player_running);
 }
 
 void Game::poll_window_events()
@@ -177,4 +186,12 @@ sf::Texture* Game::get_texture(const std::string &name)
     return nullptr;
 
   return &res->second;
+}
+
+void Game::load_texture(const std::string &name, const std::string fileformat)
+{
+  sf::Texture player_text;
+  player_text.loadFromFile("assets/" + name + "." + fileformat);
+
+  m_textures.emplace(name, std::move(player_text));
 }

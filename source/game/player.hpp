@@ -5,13 +5,14 @@
 #include <SFML/Graphics.hpp>
 
 #include "game.hpp"
+#include "misc/animated-sprite.hpp"
 
 
 class Game::Player
 {
 public:
 
-  Player(sf::Texture *texture);
+  Player(Animation idle, Animation run);
 
   ~Player();
 
@@ -26,9 +27,14 @@ public:
 
 private:
 
-  sf::Sprite m_sprite;
+  Animation m_idle_anim;
+  Animation m_run_anim;
+
+  AnimatedSprite m_sprite;
 
   float m_ms;
+
+  bool m_is_running;
 
 };
 
