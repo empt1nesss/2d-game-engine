@@ -1,7 +1,7 @@
 #include "player.hpp"
 
 
-Game::Player::Player(Animation idle, Animation run) :
+Engine::Player::Player(TextureAtlas idle, TextureAtlas run) :
   m_sprite(idle),
   m_ms(.5f),
   m_is_running(false),
@@ -12,13 +12,13 @@ Game::Player::Player(Animation idle, Animation run) :
   m_sprite.setScale(sf::Vector2f{ 4.f, 4.f });
 }
 
-Game::Player::~Player()
+Engine::Player::~Player()
 {
 
 }
 
 
-void Game::Player::Update(uint64_t dt, ButtonState keyboard_state[])
+void Engine::Player::Update(uint64_t dt, const UserInput &user_input)
 {
   m_sprite.Update(dt);
 
@@ -28,36 +28,36 @@ void Game::Player::Update(uint64_t dt, ButtonState keyboard_state[])
   bool running = true;
 
   if (
-    (int)keyboard_state[sf::Keyboard::A] > 0 &&
-    (int)keyboard_state[sf::Keyboard::W] > 0
+    user_input.GetKeyState(sf::Keyboard::A) > 0 &&
+    user_input.GetKeyState(sf::Keyboard::W) > 0
   ) {
     m_sprite.move({ -d_ms, -d_ms });
   }
   else if (
-    (int)keyboard_state[sf::Keyboard::D] > 0 &&
-    (int)keyboard_state[sf::Keyboard::W] > 0
+    user_input.GetKeyState(sf::Keyboard::D) > 0 &&
+    user_input.GetKeyState(sf::Keyboard::W) > 0
   ) {
     m_sprite.move({ d_ms, -d_ms });
   }
   else if (
-    (int)keyboard_state[sf::Keyboard::A] > 0 &&
-    (int)keyboard_state[sf::Keyboard::S] > 0
+    user_input.GetKeyState(sf::Keyboard::A) > 0 &&
+    user_input.GetKeyState(sf::Keyboard::S) > 0
   ) {
     m_sprite.move({ -d_ms, d_ms });
   }
   else if (
-    (int)keyboard_state[sf::Keyboard::D] > 0 &&
-    (int)keyboard_state[sf::Keyboard::S] > 0
+    user_input.GetKeyState(sf::Keyboard::D) > 0 &&
+    user_input.GetKeyState(sf::Keyboard::S) > 0
   ) {
     m_sprite.move({ d_ms, d_ms });
   }
-  else if ((int)keyboard_state[sf::Keyboard::W] > 0)
+  else if (user_input.GetKeyState(sf::Keyboard::W) > 0)
     m_sprite.move({ 0.f, -ms });
-  else if ((int)keyboard_state[sf::Keyboard::S] > 0)
+  else if (user_input.GetKeyState(sf::Keyboard::S) > 0)
     m_sprite.move({ 0.f, ms });
-  else if ((int)keyboard_state[sf::Keyboard::A] > 0)
+  else if (user_input.GetKeyState(sf::Keyboard::A) > 0)
     m_sprite.move({ -ms, 0.f });
-  else if ((int)keyboard_state[sf::Keyboard::D] > 0)
+  else if (user_input.GetKeyState(sf::Keyboard::D) > 0)
     m_sprite.move({ ms, 0.f });
   else
     running = false;
@@ -71,7 +71,7 @@ void Game::Player::Update(uint64_t dt, ButtonState keyboard_state[])
   }
 }
 
-void Game::Player::Render(sf::RenderTarget &target)
+void Engine::Player::Render(sf::RenderTarget &target)
 {
   target.draw(m_sprite);
 }

@@ -1,19 +1,21 @@
-#ifndef GAME_GAME_HPP
-#define GAME_GAME_HPP
+#ifndef ENGINE_ENGINE_HPP
+#define ENGINE_ENGINE_HPP
 
 
 #include <SFML/Graphics.hpp>
 
+#include "system/user-input.hpp"
+
 #include <map>
 
 
-class Game
+class Engine
 {
 public:
 
-  Game();
+  Engine();
 
-  ~Game();
+  ~Engine();
 
 
   void Update(uint64_t dt);
@@ -31,6 +33,11 @@ private:
     RELEASED    = -1,
   };
 
+  class Map;
+
+  class Object;
+  class Shape;
+
   class Player;
 
 
@@ -43,10 +50,10 @@ private:
   std::map<std::string, sf::Texture> m_textures;
 
   Player                 *m_player;
+  Shape                  *m_cube;
   sf::Sprite             *m_bg;
 
-  ButtonState m_keyboard_state     [sf::Keyboard::KeyCount];
-  ButtonState m_mouse_buttons_state[sf::Mouse::ButtonCount];
+  UserInput m_user_input;
 
 
   void init_window  ();
@@ -64,4 +71,4 @@ private:
 };
 
 
-#endif // !GAME_GAME_HPP
+#endif // !ENGINE_ENGINE_HPP

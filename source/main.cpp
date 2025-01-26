@@ -1,4 +1,4 @@
-#include "game/game.hpp"
+#include "engine/engine.hpp"
 
 #include <chrono>
 #include <thread>
@@ -6,18 +6,19 @@
 
 int main()
 {
-  Game game;
+  Engine engine;
 
   std::chrono::time_point<std::chrono::high_resolution_clock> timer1;
   std::chrono::time_point<std::chrono::high_resolution_clock> timer2;
 
-  while (game.IsRunning()) {
+  timer1 = std::chrono::high_resolution_clock::now();;
+  while (engine.IsRunning()) {
     timer2 = std::chrono::high_resolution_clock::now();
 
-    game.Update((timer2 - timer1).count());
+    engine.Update((timer2 - timer1).count());
     timer1 = timer2;
 
-    game.Render();
+    engine.Render();
 
     std::this_thread::sleep_for(std::chrono::milliseconds(1));
   }

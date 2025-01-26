@@ -4,16 +4,7 @@
 
 #include <SFML/Graphics.hpp>
 
-
-struct Animation
-{
-  sf::Texture *texture;
-  unsigned     frame_width;
-  unsigned     frame_height;
-  float        frame_time;
-  unsigned     rows;
-  unsigned     cols;
-};
+#include "misc/misc.hpp"
 
 
 class AnimatedSprite : public sf::Sprite
@@ -22,13 +13,14 @@ public:
 
   struct Frame
   {
-    sf::IntRect rect;
-    float       duration;  // milliseconds
+    sf::IntRect  rect;
+    float        duration;  // milliseconds
+    sf::Texture *texture;
   };
 
 
   AnimatedSprite(const sf::Texture &texture, std::vector<Frame> frames={});
-  AnimatedSprite(Animation animation);
+  AnimatedSprite(TextureAtlas texture_atlas);
 
   ~AnimatedSprite() = default;
 
@@ -39,7 +31,7 @@ public:
   void AddFrames  (const std::vector<Frame> &frames);
   void ClearFrames();
 
-  void SwitchAnimation(Animation animation);
+  void SwitchAnimation(TextureAtlas texture_atlas);
 
   void ResetTime();
 

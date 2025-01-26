@@ -9,10 +9,11 @@ AnimatedSprite::AnimatedSprite(const sf::Texture &texture, std::vector<Frame> fr
   }
 }
 
-AnimatedSprite::AnimatedSprite(Animation animation) :
-  m_frames(animation.rows * animation.cols)
+AnimatedSprite::AnimatedSprite(TextureAtlas texture_atlas) :
+  m_frames(texture_atlas.rows * texture_atlas.cols)
 {
-  SwitchAnimation(animation);
+  SwitchAnimation(texture_atlas);
+  Sprite::setTextureRect(m_frames[0].rect);
 }
 
 
@@ -24,10 +25,14 @@ void AnimatedSprite::Update(uint64_t dt)
   m_frame_time += (dt * 1e-6);
   while (m_frame_time >= m_frames[m_cur_frame].duration) {
     m_frame_time -= m_frames[m_cur_frame].duration;
+    auto last_text_ptr = m_frames[m_cur_frame].texture;
 
     ++m_cur_frame;
     if (m_cur_frame == m_frames.size())
       m_cur_frame = 0;
+
+    if (m_frames[m_cur_frame].texture != last_text_ptr)
+      Sprite::setTexture(*m_frames[m_cur_frame].texture);
 
     Sprite::setTextureRect(m_frames[m_cur_frame].rect);
   }
@@ -61,19 +66,20 @@ void AnimatedSprite::ClearFrames()
   ResetTime();
 }
 
-void AnimatedSprite::SwitchAnimation(Animation animation)
+void AnimatedSprite::SwitchAnimation(TextureAtlas texture_atlas)
 {
-  sf::Sprite::setTexture(*animation.texture);
-  for (unsigned row = 0; row < animation.rows; ++row) {
-    for (unsigned col = 0; col < animation.cols; ++col) {
-      m_frames[row * animation.cols + col] = {
+  sf::Sprite::setTexture(*texture_atlas.texture);
+  for (unsigned row = 0; row < texture_atlas.rows; ++row) {
+    for (unsigned col = 0; col < texture_atlas.cols; ++col) {
+      m_frames[row * texture_atlas.cols + col] = {
         {
-          (int)(animation.frame_width * col),
-          (int)(animation.frame_height * row),
-          (int)animation.frame_width,
-          (int)animation.frame_height
+          (int)(texture_atlas.frame_width * col + texture_atlas.offset_x),
+          (int)(texture_atlas.frame_height * row + texture_atlas.offset_y),
+          (int)texture_atlas.frame_width,
+          (int)texture_atlas.frame_height
         },
-        animation.frame_time
+        texture_atlas.frame_time,
+        texture_atlas.texture
       };
     } 
   }

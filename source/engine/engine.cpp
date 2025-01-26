@@ -1,8 +1,9 @@
-#include "game.hpp"
+#include "engine.hpp"
 #include "player.hpp"
+#include "objects/phys-shape.hpp"
 
 
-Game::Game()
+Engine::Engine()
 {
   srand(time(0));
 
@@ -11,28 +12,47 @@ Game::Game()
   init_map_bg  ();
   init_player  ();
 
+  m_cube = new Shape(sf::VertexArray(sf::TriangleFan, 5));
+  
+  m_cube->m_vertecies[0] = sf::Vector2f{ 0.f, 0.f };
+  m_cube->m_vertecies[1] = sf::Vector2f{ 100.f, 0.f };
+  m_cube->m_vertecies[2] = sf::Vector2f{ 100.f, 100.f };
+  m_cube->m_vertecies[3] = sf::Vector2f{ 50.f, 150.f };
+  m_cube->m_vertecies[4] = sf::Vector2f{ 0.f, 100.f };
+
+  m_cube->m_vertecies[0].color = sf::Color::White;
+  m_cube->m_vertecies[1].color = sf::Color::White;
+  m_cube->m_vertecies[2].color = sf::Color::White;
+  m_cube->m_vertecies[3].color = sf::Color::White;
+  m_cube->m_vertecies[4].color = sf::Color::White;
+
+  m_cube->m_v = { .02f, .01f };
+  m_cube->m_angular_v = 2.f;
+
   m_running = true;
 }
 
-Game::~Game()
+Engine::~Engine()
 {
+  delete m_cube;
   delete m_player;
   delete m_bg;
   delete m_window;
 }
 
 
-void Game::Update(uint64_t dt)
+void Engine::Update(uint64_t dt)
 {
   poll_window_events();
   
   auto pl_pos_old = m_player->GetPosition();
 
-  m_player->Update(dt, m_keyboard_state);
+  m_player->Update(dt, m_user_input);
   update_view();
+  m_cube->Update(dt);
 }
 
-void Game::Render()
+void Engine::Render()
 {
   m_window->setView(m_view);
   m_window->clear(sf::Color(30, 46, 59));
@@ -40,12 +60,14 @@ void Game::Render()
 
   m_player->Render(*m_window);
 
+  m_cube->Render(*m_window);
+
   m_window->display();
 }
 
 
 
-void Game::init_window()
+void Engine::init_window()
 {
   m_videomode.width  = 1600;
   m_videomode.height = 900;
@@ -57,27 +79,16 @@ void Game::init_window()
   );
 
   m_view.setSize(1600, 900);
-
-  memset(
-    m_keyboard_state,
-    (int)ButtonState::NOT_PRESSED,
-    sf::Keyboard::KeyCount * sizeof(ButtonState)
-  );
-  memset(
-    m_mouse_buttons_state,
-    (int)ButtonState::NOT_PRESSED,
-    sf::Mouse::ButtonCount * sizeof(ButtonState)
-  );
 }
 
-void Game::init_textures()
+void Engine::init_textures()
 {
   load_texture("player-idle");
   load_texture("player-running");
   load_texture("bg");
 }
 
-void Game::init_map_bg()
+void Engine::init_map_bg()
 {
   m_bg = new sf::Sprite(*get_texture("bg"));
 
@@ -85,9 +96,9 @@ void Game::init_map_bg()
   m_bg->setPosition(0.f, 0.f);
 }
 
-void Game::init_player()
+void Engine::init_player()
 {
-  Animation player_idle{
+  TextureAtlas player_idle{
     get_texture("player-idle"),
     120,
     80,
@@ -95,7 +106,7 @@ void Game::init_player()
     1,
     10
   };
-  Animation player_running{
+  TextureAtlas player_running{
     get_texture("player-running"),
     120,
     80,
@@ -106,21 +117,9 @@ void Game::init_player()
   m_player = new Player(player_idle, player_running);
 }
 
-void Game::poll_window_events()
+void Engine::poll_window_events()
 {
-  for (auto &state : m_keyboard_state) {
-    if (state == ButtonState::PRESSED)
-      state = ButtonState::SUSTAINED;
-    else if (state == ButtonState::RELEASED)
-      state = ButtonState::NOT_PRESSED;
-  }
-  for (auto &state : m_mouse_buttons_state) {
-    if (state == ButtonState::PRESSED)
-      state = ButtonState::SUSTAINED;
-    else if (state == ButtonState::RELEASED)
-      state = ButtonState::NOT_PRESSED;
-  }
-
+  m_user_input.Update();
 
   for (sf::Event wnd_event; m_window->pollEvent(wnd_event);) {
     switch (wnd_event.type)
@@ -130,29 +129,13 @@ void Game::poll_window_events()
       m_running = false;
       break;
 
-    case sf::Event::KeyPressed:
-      m_keyboard_state[wnd_event.key.code] = ButtonState::PRESSED;
-      break;
-
-    case sf::Event::KeyReleased:
-      m_keyboard_state[wnd_event.key.code] = ButtonState::RELEASED;
-      break;
-
-    case sf::Event::MouseButtonPressed:
-      m_mouse_buttons_state[wnd_event.mouseButton.button] = ButtonState::PRESSED;
-      break;
-
-    case sf::Event::MouseButtonReleased:
-      m_mouse_buttons_state[wnd_event.mouseButton.button] = ButtonState::RELEASED;
-      break;
-
     default:
-      break;
+      m_user_input.Update(wnd_event, *m_window);
     }
   }
 }
 
-void Game::update_view()
+void Engine::update_view()
 {
   auto pl_pos     = m_player->GetPosition();
   auto camera_pos = m_player->GetPosition();
@@ -179,7 +162,7 @@ void Game::update_view()
   m_view.setCenter(camera_pos);
 }
 
-sf::Texture* Game::get_texture(const std::string &name)
+sf::Texture* Engine::get_texture(const std::string &name)
 {
   auto res = m_textures.find(name);
   if (res == m_textures.end())
@@ -188,7 +171,7 @@ sf::Texture* Game::get_texture(const std::string &name)
   return &res->second;
 }
 
-void Game::load_texture(const std::string &name, const std::string fileformat)
+void Engine::load_texture(const std::string &name, const std::string fileformat)
 {
   sf::Texture player_text;
   player_text.loadFromFile("assets/" + name + "." + fileformat);

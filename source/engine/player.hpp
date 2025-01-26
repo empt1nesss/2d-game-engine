@@ -1,23 +1,24 @@
-#ifndef GAME_PLAYER_HPP
-#define GAME_PLAYER_HPP
+#ifndef ENGINE_PLAYER_HPP
+#define ENGINE_PLAYER_HPP
 
 
 #include <SFML/Graphics.hpp>
 
-#include "game.hpp"
+#include "engine.hpp"
+#include "system/user-input.hpp"
 #include "misc/animated-sprite.hpp"
 
 
-class Game::Player
+class Engine::Player
 {
 public:
 
-  Player(Animation idle, Animation run);
+  Player(TextureAtlas idle, TextureAtlas run);
 
   ~Player();
 
 
-  void Update(uint64_t dt, ButtonState keyboard_state[]);
+  void Update(uint64_t dt, const UserInput &user_input);
   void Render(sf::RenderTarget &target);
 
   sf::Vector2f  GetPosition() const { return m_sprite.getPosition(); }
@@ -27,8 +28,8 @@ public:
 
 private:
 
-  Animation m_idle_anim;
-  Animation m_run_anim;
+  TextureAtlas m_idle_anim;
+  TextureAtlas m_run_anim;
 
   AnimatedSprite m_sprite;
 
@@ -39,4 +40,4 @@ private:
 };
 
 
-#endif // !GAME_PLAYER_HPP
+#endif // !ENGINE_PLAYER_HPP
