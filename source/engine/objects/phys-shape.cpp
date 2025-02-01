@@ -1,5 +1,7 @@
 #include "phys-shape.hpp"
 
+#include <cmath>
+
 void Engine::Shape::Update(uint64_t dt)
 {
   sf::Vector2f s  = m_v * (dt * 1e-6f);
@@ -18,11 +20,11 @@ void Engine::Shape::Update(uint64_t dt)
     m_vertecies[i].position -= centre;
 
     m_vertecies[i].position = {
-      cos(angular_s) * m_vertecies[i].position.x +
-      -sin(angular_s) * m_vertecies[i].position.y,
+      (float)(cos(angular_s) * m_vertecies[i].position.x +
+      -sin(angular_s) * m_vertecies[i].position.y),
 
-      sin(angular_s) * m_vertecies[i].position.x +
-      cos(angular_s) * m_vertecies[i].position.y,
+      (float)(sin(angular_s) * m_vertecies[i].position.x +
+      cos(angular_s) * m_vertecies[i].position.y)
     };
 
     m_vertecies[i].position += centre;

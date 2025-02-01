@@ -1,5 +1,5 @@
-#ifndef APP_USER_INPUT_HPP
-#define APP_USER_INPUT_HPP
+#ifndef SYSTEM_USER_INPUT_HPP
+#define SYSTEM_USER_INPUT_HPP
 
 
 #include "SFML/Graphics.hpp"
@@ -40,8 +40,8 @@ public:
 
 private:
 
-  mutable ButtonState m_keyboard_state     [sf::Keyboard::KeyCount];
-  mutable ButtonState m_mouse_buttons_state[sf::Mouse::ButtonCount];
+  ButtonState m_keyboard_state     [sf::Keyboard::KeyCount];
+  ButtonState m_mouse_buttons_state[sf::Mouse::ButtonCount];
 
   sf::Vector2i m_mouse_pos_wnd;
   sf::Vector2f m_mouse_pos_view;
@@ -49,5 +49,5 @@ private:
 };
 
 
-#endif // !APP_USER_INPUT_HPP
+#endif // !SYSTEM_USER_INPUT_HPP
 

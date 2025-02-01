@@ -2,7 +2,7 @@
 #define ENGINE_MAP_HPP
 
 
-// This class is for creating maps and loading them from files,
+// This sruct is for creating maps and loading them from files,
 // not for play time
 
 
@@ -10,23 +10,20 @@
 #include "objects/objects.hpp"
 
 
-class Engine::Map
+struct Engine::Map
 {
 public:
 
-  Map(
-    sf::Vector2f        size,
-    sf::Texture        &bg,
-    std::vector<Object> objects,
-    sf::Vector2f        spawn_point
-  );
+  Map() = default;
   Map(
     const std::string &path
   );
 
-  ~Map() = default;
+  sf::Vector2f        Size;
+  sf::Texture         BgTexture;
+  // std::vector<Object> Objects;
+  sf::Vector2f        Spawnpoint;
 
-private:
 };
 
 

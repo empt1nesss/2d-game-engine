@@ -5,6 +5,7 @@
 #include <SFML/Graphics.hpp>
 
 #include "system/user-input.hpp"
+#include "system/resource-manager.hpp"
 
 #include <map>
 
@@ -33,11 +34,12 @@ private:
     RELEASED    = -1,
   };
 
-  class Map;
+  struct Map;
 
   class Object;
   class Shape;
 
+  class Game;
   class Player;
 
 
@@ -45,28 +47,18 @@ private:
 
   sf::VideoMode     m_videomode;
   sf::RenderWindow *m_window;
-  sf::View          m_view;
 
-  std::map<std::string, sf::Texture> m_textures;
+  UserInput       m_user_input;
+  ResourceManager m_resource_manager;
 
-  Player                 *m_player;
-  Shape                  *m_cube;
-  sf::Sprite             *m_bg;
-
-  UserInput m_user_input;
+  Game *m_game;
 
 
   void init_window  ();
   void init_textures();
-  void init_map_bg  ();
-  void init_player  ();
+  void init_game    ();
 
   void poll_window_events();
-  void update_view       ();
-
-  sf::Texture* get_texture(const std::string &name);
-
-  void load_texture(const std::string &name, const std::string fileformat="png");
 
 };
 

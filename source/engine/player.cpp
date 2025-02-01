@@ -1,5 +1,7 @@
 #include "player.hpp"
 
+#include <cmath>
+
 
 Engine::Player::Player(TextureAtlas idle, TextureAtlas run) :
   m_sprite(idle),

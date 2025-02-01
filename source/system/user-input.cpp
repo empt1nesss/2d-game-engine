@@ -61,15 +61,6 @@ UserInput::ButtonState UserInput::GetKeyState(
   sf::Keyboard::Key key
 ) const
 {
-  if (m_keyboard_state[key] == PRESSED) {
-    m_keyboard_state[key] = SUSTAINED;
-    return PRESSED;
-  }
-  else if (m_keyboard_state[key] == RELEASED) {
-    m_keyboard_state[key] = NOT_PRESSED;
-    return RELEASED;
-  }
-
   return m_keyboard_state[key];
 }
 
@@ -77,15 +68,6 @@ UserInput::ButtonState UserInput::GetMouseButtonState(
   sf::Mouse::Button button
 ) const
 {
-  if (m_mouse_buttons_state[button] == PRESSED) {
-    m_mouse_buttons_state[button] = SUSTAINED;
-    return PRESSED;
-  }
-  else if (m_mouse_buttons_state[button] == RELEASED) {
-    m_mouse_buttons_state[button] = NOT_PRESSED;
-    return RELEASED;
-  }
-
   return m_mouse_buttons_state[button];
 }
 
