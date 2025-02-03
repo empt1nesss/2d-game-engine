@@ -7,12 +7,14 @@
 #include "system/user-input.hpp"
 #include "system/resource-manager.hpp"
 
-#include <map>
-
 
 class Engine
 {
 public:
+  
+  // Must be non-static in future
+  static float GravityAcceleration;
+
 
   Engine();
 
@@ -37,7 +39,8 @@ private:
   struct Map;
 
   class Object;
-  class Shape;
+  class SpriteObject;
+  class ShapeObject;
 
   class Game;
   class Player;

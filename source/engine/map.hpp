@@ -21,7 +21,7 @@ public:
 
   sf::Vector2f        Size;
   sf::Texture         BgTexture;
-  // std::vector<Object> Objects;
+  std::vector<Object> Objects;
   sf::Vector2f        Spawnpoint;
 
 };

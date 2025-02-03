@@ -2,7 +2,9 @@
 #include "player.hpp"
 #include "engine/map.hpp"
 #include "engine/game/game.hpp"
-#include "objects/phys-shape.hpp"
+
+
+float Engine::GravityAcceleration = 980.f;
 
 
 Engine::Engine() : m_game(nullptr)

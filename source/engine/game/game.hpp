@@ -30,9 +30,9 @@ private:
 
   sf::View m_view;
 
-  Player     *m_player;
-  Shape      *m_cube;
-  sf::Sprite *m_bg;
+  Player      *m_player;
+  ShapeObject *m_cube;
+  sf::Sprite  *m_bg;
 
 
   void init_map_bg();

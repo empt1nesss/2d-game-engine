@@ -1,5 +1,5 @@
 #include "game.hpp"
-#include "engine/objects/phys-shape.hpp"
+#include "engine/objects/objects.hpp"
 #include "engine/player.hpp"
 
 
@@ -11,22 +11,19 @@ Engine::Game::Game(const Map &map, const ResourceManager &res_mgr) :
   init_map_bg();
   init_player(res_mgr);
 
-  m_cube = new Shape(sf::VertexArray(sf::TriangleFan, 5));
+  m_cube = new ShapeObject();
+  m_cube->Vertices.append(sf::Vertex({ 0.f,   0.f   }, sf::Color::White));
+  m_cube->Vertices.append(sf::Vertex({ 100.f, 0.f   }, sf::Color::White));
+  m_cube->Vertices.append(sf::Vertex({ 100.f, 100.f }, sf::Color::White));
+  m_cube->Vertices.append(sf::Vertex({ 50.f,  150.f }, sf::Color::White));
+  m_cube->Vertices.append(sf::Vertex({ 0.f,   100.f }, sf::Color::White));
 
-  m_cube->m_vertecies[0] = sf::Vector2f{ 0.f, 0.f };
-  m_cube->m_vertecies[1] = sf::Vector2f{ 100.f, 0.f };
-  m_cube->m_vertecies[2] = sf::Vector2f{ 100.f, 100.f };
-  m_cube->m_vertecies[3] = sf::Vector2f{ 50.f, 150.f };
-  m_cube->m_vertecies[4] = sf::Vector2f{ 0.f, 100.f };
+  m_cube->EnableMovement = true;
+  m_cube->EnableRotation = true;
+  m_cube->EnableGravity = true;
 
-  m_cube->m_vertecies[0].color = sf::Color::White;
-  m_cube->m_vertecies[1].color = sf::Color::White;
-  m_cube->m_vertecies[2].color = sf::Color::White;
-  m_cube->m_vertecies[3].color = sf::Color::White;
-  m_cube->m_vertecies[4].color = sf::Color::White;
-
-  m_cube->m_v = { .02f, .01f };
-  m_cube->m_angular_v = 2.f;
+  m_cube->Speed = { 200.f, 100.f };
+  m_cube->AngularSpeed = 1.f;
 }
 
 Engine::Game::~Game()
