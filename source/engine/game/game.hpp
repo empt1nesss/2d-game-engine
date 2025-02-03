@@ -31,7 +31,7 @@ private:
   sf::View m_view;
 
   Player      *m_player;
-  ShapeObject *m_cube;
+  Object      *m_cube;
   sf::Sprite  *m_bg;
 
 

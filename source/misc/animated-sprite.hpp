@@ -18,7 +18,11 @@ public:
     sf::Texture *texture;
   };
 
+  
+  bool Pause;
 
+
+  AnimatedSprite();
   AnimatedSprite(const sf::Texture &texture, std::vector<Frame> frames={});
   AnimatedSprite(TextureAtlas texture_atlas);
 

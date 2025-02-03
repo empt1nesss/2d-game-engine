@@ -39,8 +39,8 @@ private:
   struct Map;
 
   class Object;
-  class SpriteObject;
-  class ShapeObject;
+  class RectObject;
+  class CircleObject;
 
   class Game;
   class Player;

@@ -11,12 +11,10 @@ Engine::Game::Game(const Map &map, const ResourceManager &res_mgr) :
   init_map_bg();
   init_player(res_mgr);
 
-  m_cube = new ShapeObject();
-  m_cube->Vertices.append(sf::Vertex({ 0.f,   0.f   }, sf::Color::White));
-  m_cube->Vertices.append(sf::Vertex({ 100.f, 0.f   }, sf::Color::White));
-  m_cube->Vertices.append(sf::Vertex({ 100.f, 100.f }, sf::Color::White));
-  m_cube->Vertices.append(sf::Vertex({ 50.f,  150.f }, sf::Color::White));
-  m_cube->Vertices.append(sf::Vertex({ 0.f,   100.f }, sf::Color::White));
+  m_cube = new CircleObject(100.f, { 1000.f, 200.f });
+  // m_cube->SetPosition({ 100.f, 200.f });
+
+  m_cube->DrawBody = true;
 
   m_cube->EnableMovement = true;
   m_cube->EnableRotation = true;

@@ -1,8 +1,16 @@
 #include "animated-sprite.hpp"
 
 
+AnimatedSprite::AnimatedSprite() :
+  Pause(false),
+  m_cur_frame(0),
+  m_frame_time(0.f)
+{}
+
 AnimatedSprite::AnimatedSprite(const sf::Texture &texture, std::vector<Frame> frames) :
-  sf::Sprite(texture), m_frames(frames), m_cur_frame(0), m_frame_time(0.f)
+  sf::Sprite(texture),
+  Pause(false),
+  m_frames(frames), m_cur_frame(0), m_frame_time(0.f)
 {
   if (!m_frames.empty()) {
     Sprite::setTextureRect(m_frames[0].rect);
@@ -10,6 +18,7 @@ AnimatedSprite::AnimatedSprite(const sf::Texture &texture, std::vector<Frame> fr
 }
 
 AnimatedSprite::AnimatedSprite(TextureAtlas texture_atlas) :
+  Pause(false),
   m_frames(texture_atlas.rows * texture_atlas.cols)
 {
   SwitchAnimation(texture_atlas);
@@ -19,6 +28,9 @@ AnimatedSprite::AnimatedSprite(TextureAtlas texture_atlas) :
 
 void AnimatedSprite::Update(uint64_t dt)
 {
+  if (Pause)
+    return;
+
   if (m_frames.empty())
     return;
 
@@ -68,6 +80,7 @@ void AnimatedSprite::ClearFrames()
 
 void AnimatedSprite::SwitchAnimation(TextureAtlas texture_atlas)
 {
+  m_frames.resize(texture_atlas.cols * texture_atlas.rows);
   sf::Sprite::setTexture(*texture_atlas.texture);
   for (unsigned row = 0; row < texture_atlas.rows; ++row) {
     for (unsigned col = 0; col < texture_atlas.cols; ++col) {
@@ -83,6 +96,8 @@ void AnimatedSprite::SwitchAnimation(TextureAtlas texture_atlas)
       };
     } 
   }
+  if (!m_frames.empty())
+    Sprite::setTextureRect(m_frames[0].rect);
   ResetTime();
 }
 

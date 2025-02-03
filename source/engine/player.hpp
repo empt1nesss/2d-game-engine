@@ -5,11 +5,12 @@
 #include <SFML/Graphics.hpp>
 
 #include "engine.hpp"
+#include "objects/objects.hpp"
 #include "system/user-input.hpp"
 #include "misc/animated-sprite.hpp"
 
 
-class Engine::Player
+class Engine::Player : Engine::RectObject
 {
 public:
 
@@ -19,19 +20,17 @@ public:
 
 
   void Update(uint64_t dt, const UserInput &user_input);
-  void Render(sf::RenderTarget &target);
+  virtual void Render(sf::RenderTarget &target) override { RectObject::Render(target); }
 
-  sf::Vector2f  GetPosition() const { return m_sprite.getPosition(); }
-  sf::FloatRect GetBounds  () const { return m_sprite.getGlobalBounds(); }
+  sf::Vector2f  GetPosition() const { return RectObject::GetPosition(); }
+  sf::FloatRect GetBounds  () const { return GetBody().getBounds(); }
 
-  void SetPosition(const sf::Vector2f &pos) { m_sprite.setPosition(pos); }
+  void SetPosition(const sf::Vector2f &pos) { RectObject::SetPosition(pos); }
 
 private:
 
   TextureAtlas m_idle_anim;
   TextureAtlas m_run_anim;
-
-  AnimatedSprite m_sprite;
 
   float m_ms;
 
