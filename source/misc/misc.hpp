@@ -18,4 +18,9 @@ struct TextureAtlas
 };
 
 
+float        dot          (const sf::Vector2f &v1, const sf::Vector2f &v2);
+sf::Vector2f normalize    (const sf::Vector2f &v);
+sf::Vector2f perpendicular(const sf::Vector2f &v);
+
+
 #endif // !MISC_MISC_HPP

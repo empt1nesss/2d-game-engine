@@ -7,14 +7,15 @@ std::vector<Engine::Object*> Engine::Object::m_objects;
 
 
 Engine::Object::Object(const std::vector<sf::Vector2f> &vertices, sf::Vector2f pos) :
-  EnableCollision(false),
-  EnableMovement (false),
-  EnableGravity  (false),
-  EnableRotation (false),
+  m_enable_collision(false),
+  m_enable_movement (false),
+  m_enable_gravity  (false),
+  m_enable_rotation (false),
 
-  Speed       ({ 0.f, 0.f }),
-  AngularSpeed(0.f),
-  Mass        (0.f),
+  m_v          ({ 0.f, 0.f }),
+  m_av         (0.f),
+  m_m          (1.f),
+  m_restitution(0.f),
 
   DrawBody(false)
 {
@@ -32,6 +33,8 @@ Engine::Object::Object(const std::vector<sf::Vector2f> &vertices, sf::Vector2f p
   m_center /= (float)vertices.size();
 
   SetPosition(pos);
+
+  m_on_ground = is_on_ground();
 }
 
 
@@ -39,19 +42,20 @@ void Engine::Object::Update(uint64_t dt)
 {
   m_sprite.Update(dt);
 
-  if (EnableGravity && EnableMovement) {
-    Speed.y += (dt * 1e-9f * GravityAcceleration);
-  } 
-  if (EnableMovement) {
-    sf::Vector2f s = Speed * (dt * 1e-9f);
+  if (m_enable_movement) {
+    if (m_enable_gravity) {
+      m_v.y += (dt * 1e-9f * GravityAcceleration);
+    }
+
+    sf::Vector2f s = m_v * (dt * 1e-9f);
     for (size_t i = 0; i < m_body.getVertexCount(); ++i) {
       m_body[i].position += s;
     }
     m_center += s;
     m_sprite.move(s);
   }
-  if (EnableRotation) {
-    float as = AngularSpeed * (dt * 1e-9f);
+  if (m_enable_rotation) {
+    float as = m_av * (dt * 1e-9f);
 
     for (size_t i = 0; i < m_body.getVertexCount(); ++i) {
       m_body[i].position -= m_center;
@@ -69,9 +73,8 @@ void Engine::Object::Update(uint64_t dt)
 
     m_sprite.rotate(as);
   }
-  if (EnableCollision) {
-    // to do
-  }
+
+  m_on_ground = is_on_ground();
 }
 
 void Engine::Object::Render(sf::RenderTarget &target)
@@ -79,6 +82,80 @@ void Engine::Object::Render(sf::RenderTarget &target)
   target.draw(m_sprite);
   if (DrawBody)
     target.draw(m_body);
+}
+
+void Engine::Object::EnableCollision(bool state)
+{
+  m_enable_collision = state;
+}
+
+void Engine::Object::EnableMovement(bool state)
+{
+  if (m_enable_movement == state)
+    return;
+
+  m_enable_movement = state;
+
+  if (!m_enable_movement)
+    m_v = { 0.f, 0.f };
+}
+
+void Engine::Object::EnableGravity(bool state)
+{
+  m_enable_gravity = state;
+}
+
+void Engine::Object::EnableRotation(bool state)
+{
+  if (m_enable_rotation == state)
+    return;
+
+  m_enable_rotation = state;
+
+  if (!m_enable_rotation)
+    m_av = 0.f;
+}
+
+bool Engine::Object::SetSpeed(const sf::Vector2f &v)
+{
+  if (!m_enable_movement)
+    return false;
+
+  m_v = v;
+  return true;
+}
+
+bool Engine::Object::SetAngularSpeed(float av)
+{
+  if (!m_enable_rotation)
+    return false;
+
+  m_av = av;
+  return true;
+}
+
+bool Engine::Object::SetMass(float m)
+{
+  if (m <= 0.f)
+    return false;
+
+  m_m = m;
+  return true;
+}
+
+bool Engine::Object::SetRestitution(float val)
+{
+  if (val < 0.f) {
+    m_restitution = 0.f;
+    return false;
+  }
+  else if (val > 1.f) {
+    m_restitution = 1.f;
+    return false;
+  }
+
+  m_restitution = val;
+  return true;
 }
 
 void Engine::Object::SetPosition(sf::Vector2f pos)
@@ -129,6 +206,195 @@ void Engine::Object::SetBodyColor(sf::Color color)
   for (size_t i = 0; i < m_body.getVertexCount(); ++i) {
     m_body[i].color = color;
   }
+}
+
+
+bool lines_intersects(
+  sf::Vector2f A1, sf::Vector2f A2, sf::Vector2f B1, sf::Vector2f B2
+)
+{
+  auto cross = [](double x1, double y1, double x2, double y2)
+  {
+    return x1 * y2 - y1 * x2;
+  };
+
+  double d1, d2, d3, d4;
+
+  d1 = cross(A2.x - A1.x, A2.y - A1.y, B1.x - A1.x, B1.y - A1.y);
+  d2 = cross(A2.x - A1.x, A2.y - A1.y, B2.x - A1.x, B2.y - A1.y);
+  d3 = cross(B2.x - B1.x, B2.y - B1.y, A1.x - B1.x, A1.y - B1.y);
+  d4 = cross(B2.x - B1.x, B2.y - B1.y, A2.x - B1.x, A2.y - B1.y);
+
+  return (
+    ((d1 > 0. && d2 < 0.) || (d1 < 0. && d2 > 0.)) &&
+    ((d3 > 0. && d4 < 0.) || (d3 < 0. && d4 > 0.))
+  );
+}
+
+bool Engine::Object::IsIntersects(const Object &object) const
+{
+  if (!m_body.getBounds().intersects(object.m_body.getBounds()))
+    return false;
+
+  size_t n1 = m_body.getVertexCount();
+  size_t n2 = object.m_body.getVertexCount();
+
+  for (size_t i = 0; i < n1; ++i) {
+    for (size_t j = 0; j < n2; ++j) {
+      sf::Vector2f A, B, C, D;
+
+      A = m_body[i].position;
+      B = m_body[(i + 1) % n1].position;
+
+      C = object.m_body[j].position;
+      D = object.m_body[(j + 1) % n2].position;
+
+
+      if (lines_intersects(A, B, C, D))
+        return true;
+    }
+  }
+  
+  return false;
+}
+
+
+Engine::Object::CollisionInfo Engine::Object::GetCollisionInfo(
+  const Object &object
+) const
+{
+  float        min_overlap = INFINITY;
+  sf::Vector2f best_normal;
+
+  auto get_edges = [](const sf::VertexArray &poly)
+  {
+    std::vector<sf::Vector2f> edges;
+    for (size_t i = 0; i < poly.getVertexCount(); ++i) {
+      sf::Vector2f v1 = poly[i].position;
+      sf::Vector2f v2 = poly[(i + 1) % poly.getVertexCount()].position;
+
+      edges.push_back(v2 - v1);
+    }
+    return edges;
+  };
+
+  auto project_polygon = [](const sf::VertexArray &poly, sf::Vector2f axis)
+  {
+    float min_proj = INFINITY, max_proj = -INFINITY;
+
+    for (size_t i = 0; i < poly.getVertexCount(); ++i) {
+      float proj = dot(poly[i].position, axis);
+      if (proj < min_proj)
+        min_proj = proj;
+      if (proj > max_proj)
+        max_proj = proj;
+    }
+
+    return std::make_pair(min_proj, max_proj);
+  };
+
+  auto edges1 = get_edges(m_body), edges2 = get_edges(object.m_body);
+  
+  for (auto &edge : edges1) {
+    sf::Vector2f axis = normalize(perpendicular(edge));
+    auto [min1, max1] = project_polygon(m_body, axis);
+    auto [min2, max2] = project_polygon(object.m_body, axis);
+
+    float overlap = std::min(max1, max2) - std::max(min1, min2);
+
+    if (overlap <= 0.f)
+      return { false, { 0.f, 0.f }, 0.f  };
+
+    if (overlap < min_overlap) {
+      min_overlap = overlap;
+      best_normal = axis;
+    }
+  }
+
+  for (auto &edge : edges2) {
+    sf::Vector2f axis = normalize(perpendicular(edge));
+    auto [min1, max1] = project_polygon(m_body, axis);
+    auto [min2, max2] = project_polygon(object.m_body, axis);
+
+    float overlap = std::min(max1, max2) - std::max(min1, min2);
+
+    if (overlap <= 0.f)
+      return { false, { 0.f, 0.f }, 0.f };
+
+    if (overlap < min_overlap) {
+      min_overlap = overlap;
+      best_normal = axis;
+    }
+  }
+
+  auto centre_v = GetPosition() - object.GetPosition();
+  if (
+    (
+      centre_v.x >= 0.f && centre_v.y >= 0.f &&
+      best_normal.x <= 0.f && best_normal.y <= 0.f
+    ) ||
+    (
+      centre_v.x <= 0.f && centre_v.y >= 0.f &&
+      best_normal.x >= 0.f && best_normal.y <= 0.f
+    ) ||
+    (
+      centre_v.x >= 0.f && centre_v.y <= 0.f &&
+      best_normal.x <= 0.f && best_normal.y >= 0.f
+    ) ||
+    (
+      centre_v.x <= 0.f && centre_v.y <= 0.f &&
+      best_normal.x >= 0.f && best_normal.y <= 0.f
+    )
+  ) {
+    best_normal *= -1.f;
+  }
+
+  return { true, best_normal, min_overlap };
+}
+
+bool Engine::Object::IsContains(const sf::Vector2f &point) const
+{
+  bool inside = false;
+  size_t n = m_body.getVertexCount();
+  
+  for (size_t i = 0, j = n - 1; i < n; j = i++) {
+    double xi = m_body[i].position.x, yi = m_body[i].position.y;
+    double xj = m_body[j].position.x, yj = m_body[j].position.y;
+    
+    bool intersect = (
+      ((yi > point.y) != (yj > point.y)) &&
+      (point.x < (xj - xi) * (point.y - yi) / (yj - yi) + xi)
+    );
+    
+    if (intersect)
+      inside = !inside;
+  }
+  
+  return inside;
+}
+
+
+
+bool Engine::Object::is_on_ground()
+{
+  if (!m_enable_movement)
+    return false;
+
+  if (!m_enable_gravity)
+    return true;
+  
+  sf::Vector2f under_point = m_body[0].position;
+  for (size_t i = 1; i < m_body.getVertexCount(); ++i)
+    if (m_body[i].position.y > under_point.y)
+      under_point = m_body[i].position;
+
+  for (auto &object : m_objects) {
+    if (this != object && object->m_enable_collision)
+      if (object->IsContains(under_point))
+        return true;
+  }
+
+  return false;
 }
 
 

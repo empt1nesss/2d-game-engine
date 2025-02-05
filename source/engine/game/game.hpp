@@ -8,9 +8,6 @@
 #include "system/resource-manager.hpp"
 
 
-// This class must contains play time stuff like
-// current map, player, and other
-
 
 class Engine::Game
 {
@@ -26,19 +23,24 @@ public:
 
 private:
 
+  class Player;
+
+
   Map m_map;
 
   sf::View m_view;
 
   Player      *m_player;
   Object      *m_cube;
+  Object      *m_ground;
   sf::Sprite  *m_bg;
 
 
   void init_map_bg();
   void init_player(const ResourceManager &res_mgr);
 
-  void update_view();
+  void update_view     (uint64_t dt);
+  void update_collision();
 
 };
 

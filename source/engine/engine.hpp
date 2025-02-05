@@ -43,7 +43,6 @@ private:
   class CircleObject;
 
   class Game;
-  class Player;
 
 
   bool m_running;

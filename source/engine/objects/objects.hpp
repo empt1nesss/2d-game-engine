@@ -12,6 +12,13 @@ class Engine::Object
 {
 public:
 
+  struct CollisionInfo {
+    bool         collision_detected;
+    sf::Vector2f normal;
+    float        depth;
+  };
+
+
   Object(
     const std::vector<sf::Vector2f> &vertices,
     sf::Vector2f                     pos     ={ 0.f, 0.f }
@@ -22,17 +29,28 @@ public:
   virtual void Render(sf::RenderTarget &target);
 
 
-  bool EnableCollision;
-  bool EnableMovement;
-  bool EnableGravity;
-  bool EnableRotation;
-  
-  sf::Vector2f Speed;
-  float        AngularSpeed;
-  float        Mass;
-
   bool DrawBody;
-  
+
+
+  void EnableCollision(bool state);
+  void EnableMovement (bool state);
+  void EnableGravity  (bool state);
+  void EnableRotation (bool state);
+
+  bool IsCollisionEnabled() const { return m_enable_collision; }
+  bool IsMovementEnabled () const { return m_enable_movement; }
+  bool IsGravityEnabled  () const { return m_enable_gravity; };
+  bool IsRotationEnabled () const { return m_enable_rotation; }
+
+  bool SetSpeed       (const sf::Vector2f &v);
+  bool SetAngularSpeed(float               av);
+  bool SetMass        (float               m);
+  bool SetRestitution (float               val);
+
+  sf::Vector2f GetSpeed       () const { return m_v; }
+  float        GetAngularSpeed() const { return m_av; }
+  float        GetMass        () const { return m_m; }
+  float        GetRestitution () const { return m_restitution; }
 
   void SetPosition      (sf::Vector2f pos);
   void Move             (sf::Vector2f s);
@@ -46,20 +64,39 @@ public:
   sf::Vector2f           GetPosition() const { return m_center; }
   const sf::VertexArray& GetBody    () const { return m_body; }
 
-  bool IsFalling() const; // to do
+  static const std::vector<Object*>& GetAllObjects() { return m_objects; }
+
+  bool OnGround() const { return m_on_ground; }
+
+  bool          IsIntersects    (const Object       &object) const;
+  CollisionInfo GetCollisionInfo(const Object       &object) const;
+  bool          IsContains      (const sf::Vector2f &point)  const;
 
 
   bool operator==(const Object &object) const { return this == &object; }
 
-protected:
+private:
 
   static std::vector<Object*> m_objects;
-
-private:
 
   sf::VertexArray m_body;
   AnimatedSprite  m_sprite;
   sf::Vector2f    m_center;
+
+  sf::Vector2f m_v;
+  float        m_av;
+  float        m_m;
+  float        m_restitution;
+
+  bool m_on_ground;
+
+  bool m_enable_collision;
+  bool m_enable_movement;
+  bool m_enable_gravity;
+  bool m_enable_rotation;
+
+
+  bool is_on_ground();
 
 };
 

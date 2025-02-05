@@ -1,5 +1,4 @@
 #include "engine.hpp"
-#include "player.hpp"
 #include "engine/map.hpp"
 #include "engine/game/game.hpp"
 
@@ -28,7 +27,7 @@ Engine::~Engine()
 void Engine::Update(uint64_t dt)
 {
   poll_window_events();
-
+  
   m_game->Update(dt, m_user_input);
 }
 

@@ -20,7 +20,8 @@ void UserInput::Update(
   switch (event.type)
   {
   case sf::Event::KeyPressed:
-    m_keyboard_state[event.key.code] = PRESSED;
+    if (m_keyboard_state[event.key.code] != SUSTAINED)
+      m_keyboard_state[event.key.code] = PRESSED;
     return;
   
   case sf::Event::KeyReleased:
@@ -28,7 +29,8 @@ void UserInput::Update(
     return;
 
   case sf::Event::MouseButtonPressed:
-    m_mouse_buttons_state[event.mouseButton.button] = PRESSED;
+    if (m_mouse_buttons_state[event.mouseButton.button] != SUSTAINED)
+      m_mouse_buttons_state[event.mouseButton.button] = PRESSED;
     return;
 
   case sf::Event::MouseButtonReleased:
@@ -48,7 +50,6 @@ void UserInput::Update()
     else if (state == RELEASED)
       state = NOT_PRESSED;
   }
-
   for (auto &state : m_mouse_buttons_state) {
     if (state == PRESSED)
       state = SUSTAINED;
