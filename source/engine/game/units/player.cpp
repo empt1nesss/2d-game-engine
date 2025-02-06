@@ -13,6 +13,7 @@ Engine::Game::Player::Player(TextureAtlas idle, TextureAtlas run) :
   SetTexture(idle);
   SetSpriteScale(sf::Vector2f{ 4.f, 4.f });
   SetSpriteOrigin({ 60.f, 60.f });
+  SetMass(5.f);
   // SetRestitution(1.f);
 
   EnableMovement(true);
@@ -21,7 +22,7 @@ Engine::Game::Player::Player(TextureAtlas idle, TextureAtlas run) :
 
   DrawBody = true;
 
-  // SetSpeed({ 250.f, -100.f });
+  // SetSpeed({ 250.f, -50.f });
 }
 
 Engine::Game::Player::~Player()
@@ -88,7 +89,6 @@ void Engine::Game::Player::Update(uint64_t dt, const UserInput &user_input)
 
 
   SetSpeed(GetSpeed() + mv);
-  // printf("%f\n", mv.x);
 
 
   if (m_is_running != running) {

@@ -328,27 +328,10 @@ Engine::Object::CollisionInfo Engine::Object::GetCollisionInfo(
     }
   }
 
-  auto centre_v = GetPosition() - object.GetPosition();
-  if (
-    (
-      centre_v.x >= 0.f && centre_v.y >= 0.f &&
-      best_normal.x <= 0.f && best_normal.y <= 0.f
-    ) ||
-    (
-      centre_v.x <= 0.f && centre_v.y >= 0.f &&
-      best_normal.x >= 0.f && best_normal.y <= 0.f
-    ) ||
-    (
-      centre_v.x >= 0.f && centre_v.y <= 0.f &&
-      best_normal.x <= 0.f && best_normal.y >= 0.f
-    ) ||
-    (
-      centre_v.x <= 0.f && centre_v.y <= 0.f &&
-      best_normal.x >= 0.f && best_normal.y <= 0.f
-    )
-  ) {
-    best_normal *= -1.f;
-  }
+  sf::Vector2f direction = GetPosition() - object.GetPosition();
+  if (dot(best_normal, direction) < 0)
+    best_normal = -best_normal;
+
 
   return { true, best_normal, min_overlap };
 }

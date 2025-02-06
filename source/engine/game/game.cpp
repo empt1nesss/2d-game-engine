@@ -33,7 +33,7 @@ Engine::Game::Game(const Map &map, const ResourceManager &res_mgr) :
   m_cube->EnableRotation(true);
   m_cube->EnableCollision(true);
   m_cube->EnableGravity(true);
-  m_cube->SetRestitution(0.5f);
+  m_cube->SetRestitution(1.f);
 
   // m_cube->SetSpeed({ 20.f, 10.f });
   // m_cube->SetAngularSpeed(1.f);
@@ -61,9 +61,9 @@ void Engine::Game::Render(sf::RenderTarget &target)
   target.setView(m_view);
 
   target.draw(*m_bg);
+  m_ground->Render(target);
   m_player->Render(target);
   m_cube->Render(target);
-  m_ground->Render(target);
 }
 
 
@@ -124,15 +124,15 @@ void Engine::Game::update_view(uint64_t dt)
   else if (delta.y <= -min_y)
     camera_pos.y += (delta.y + min_y) * (dt * 1e-9f * m_player->GetMoveSpeed()) / (max_y - min_y);
 
-  // if (camera_pos.x < view_size.x / 2.f)
-  //   camera_pos.x = view_size.x / 2.f;
-  // else if (camera_pos.x > m_map.Size.x - view_size.x / 2.f)
-  //   camera_pos.x = m_map.Size.x - view_size.x / 2.f;
-  //
-  // if (camera_pos.y < view_size.y / 2.f)
-  //   camera_pos.y = view_size.y / 2.f;
-  // else if (camera_pos.y > m_map.Size.y - view_size.y / 2.f)
-  //   camera_pos.y = m_map.Size.y - view_size.y / 2.f;
+  if (camera_pos.x < view_size.x / 2.f)
+    camera_pos.x = view_size.x / 2.f;
+  else if (camera_pos.x > m_map.Size.x - view_size.x / 2.f)
+    camera_pos.x = m_map.Size.x - view_size.x / 2.f;
+  
+  if (camera_pos.y < view_size.y / 2.f)
+    camera_pos.y = view_size.y / 2.f;
+  else if (camera_pos.y > m_map.Size.y - view_size.y / 2.f)
+    camera_pos.y = m_map.Size.y - view_size.y / 2.f;
 
   m_view.setCenter(camera_pos);
 }
@@ -156,9 +156,10 @@ void Engine::Game::update_collision()
       if (!collision_info.collision_detected)
         continue;
 
-      float        correction_factor = 1.f;
+      float        correction_factor = 2.f;
       sf::Vector2f correction        = (
-        normalize(collision_info.normal) * (collision_info.depth * correction_factor)
+        // normalize(collision_info.normal) * (collision_info.depth * correction_factor)
+        collision_info.normal * (collision_info.depth * correction_factor)
       );
       
       if (objects[i]->IsMovementEnabled())
