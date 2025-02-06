@@ -14,11 +14,11 @@ Engine::Game::Game(const Map &map, const ResourceManager &res_mgr) :
   init_player(res_mgr);
 
 
-  m_ground = new RectObject({ 2000.f, 100.f }, { 0.f, 700.f });
+  m_ground = new RectObject({ 2000.f, 100.f }, { 1000.f, 700.f });
   
   m_ground->DrawBody = true;
   m_ground->EnableCollision(true);
-  m_ground->SetRestitution(1.f);
+  // m_ground->SetRestitution(1.f);
   // m_ground->EnableMovement(true);
 
   m_ground->SetBodyColor(sf::Color::White);
@@ -98,7 +98,7 @@ void Engine::Game::init_player(const ResourceManager &res_mgr)
 void Engine::Game::update_view(uint64_t dt)
 {
   const float max_x = 200.f, max_y = 100.f;
-  const float edge_x = 200.f, edge_y = 100.f;
+  const float min_x = 100.f, min_y = 50.f;
 
   auto pl_pos     = m_player->GetPosition();
   auto camera_pos = m_view.getCenter();;
@@ -110,27 +110,29 @@ void Engine::Game::update_view(uint64_t dt)
     camera_pos.x += delta.x - max_x;
   else if (delta.x < -max_x)
     camera_pos.x += delta.x + max_x;
-  else
-    camera_pos.x += delta.x * (dt * 1e-9f * m_player->GetMoveSpeed()) / max_x;
+  else if (delta.x >= min_x)
+    camera_pos.x += (delta.x - min_x) * (dt * 1e-9f * m_player->GetMoveSpeed()) / (max_x - min_x);
+  else if (delta.x <= -min_x)
+    camera_pos.x += (delta.x + min_x) * (dt * 1e-9f * m_player->GetMoveSpeed()) / (max_x - min_x);
 
   if (delta.y > max_y)
     camera_pos.y += delta.y - max_y;
   else if (delta.y < -max_y)
     camera_pos.y += delta.y + max_y;
-  else
-    camera_pos.y += delta.y * (dt * 1e-9f * m_player->GetMoveSpeed()) / max_y;
+  else if (delta.y >= min_y)
+    camera_pos.y += (delta.y - min_y) * (dt * 1e-9f * m_player->GetMoveSpeed()) / (max_y - min_y);
+  else if (delta.y <= -min_y)
+    camera_pos.y += (delta.y + min_y) * (dt * 1e-9f * m_player->GetMoveSpeed()) / (max_y - min_y);
 
-  if (camera_pos.x < view_size.x / 2.f)
-    camera_pos.x = view_size.x / 2.f;
-  // else if (camera_pos.x < view_size.x / 2.f + edge_x)
-  //   camera_pos.x +=  
-  else if (camera_pos.x > m_map.Size.x - view_size.x / 2.f)
-    camera_pos.x = m_map.Size.x - view_size.x / 2.f;
-
-  if (camera_pos.y < view_size.y / 2.f)
-    camera_pos.y = view_size.y / 2.f;
-  else if (camera_pos.y > m_map.Size.y - view_size.y / 2.f)
-    camera_pos.y = m_map.Size.y - view_size.y / 2.f;
+  // if (camera_pos.x < view_size.x / 2.f)
+  //   camera_pos.x = view_size.x / 2.f;
+  // else if (camera_pos.x > m_map.Size.x - view_size.x / 2.f)
+  //   camera_pos.x = m_map.Size.x - view_size.x / 2.f;
+  //
+  // if (camera_pos.y < view_size.y / 2.f)
+  //   camera_pos.y = view_size.y / 2.f;
+  // else if (camera_pos.y > m_map.Size.y - view_size.y / 2.f)
+  //   camera_pos.y = m_map.Size.y - view_size.y / 2.f;
 
   m_view.setCenter(camera_pos);
 }
@@ -156,13 +158,19 @@ void Engine::Game::update_collision()
 
       float        correction_factor = 1.f;
       sf::Vector2f correction        = (
-        collision_info.normal * (collision_info.depth * correction_factor)
+        normalize(collision_info.normal) * (collision_info.depth * correction_factor)
       );
       
       if (objects[i]->IsMovementEnabled())
         objects[i]->SetPosition(objects[i]->GetPosition() + correction);
       else
         objects[j]->SetPosition(objects[j]->GetPosition() - correction);
+
+      if (objects[i]->GetRestitution() == 0.f && objects[j]->GetRestitution() == 0.f) {
+        objects[i]->SetSpeed({ 0.f, 0.f });
+        objects[j]->SetSpeed({ 0.f, 0.f });
+        continue;
+      }
 
       float m1 = objects[i]->GetMass(), m2 = objects[j]->GetMass();
 

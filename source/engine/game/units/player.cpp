@@ -45,22 +45,35 @@ void Engine::Game::Player::Update(uint64_t dt, const UserInput &user_input)
       mv.x -= m_ms;
       m_is_running = false;
     }
-    else if (user_input.GetKeyState(sf::Keyboard::A) == UserInput::RELEASED) {
+    if (user_input.GetKeyState(sf::Keyboard::A) == UserInput::RELEASED) {
       mv.x += m_ms;
       m_is_running = false;
     }
+    if (user_input.GetKeyState(sf::Keyboard::S) == UserInput::RELEASED) {
+      mv.y -= m_ms;
+      m_is_running = false;
+    }
+    if (user_input.GetKeyState(sf::Keyboard::W) == UserInput::RELEASED) {
+      mv.y += m_ms;
+      m_is_running = false;
+    }
+
 
     if (user_input.GetKeyState(sf::Keyboard::D) == UserInput::PRESSED) {
       mv.x += m_ms;
       m_is_running = true;
     }
-    else if (user_input.GetKeyState(sf::Keyboard::A) == UserInput::PRESSED) {
+    if (user_input.GetKeyState(sf::Keyboard::A) == UserInput::PRESSED) {
       mv.x -= m_ms;
       m_is_running = true;
     }
-
-    if (user_input.GetKeyState(sf::Keyboard::Space) == UserInput::PRESSED) {
-      mv.y -= 400.f;
+    if (user_input.GetKeyState(sf::Keyboard::S) == UserInput::PRESSED) {
+      mv.y += m_ms;
+      m_is_running = true;
+    }
+    if (user_input.GetKeyState(sf::Keyboard::W) == UserInput::PRESSED) {
+      mv.y -= m_ms;
+      m_is_running = true;
     }
 
     if (mv.x > m_ms)
