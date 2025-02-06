@@ -117,14 +117,14 @@ public:
   CircleObject(
     float        radius,
     sf::Vector2f pos         ={ 0.f, 0.f },
-    uint         vertex_count=12
+    unsigned     vertex_count=12
   );
 
 private:
 
   static std::vector<sf::Vector2f> create_circle(
-    float radius,
-    uint  vertex_count
+    float    radius,
+    unsigned vertex_count
   );
 
 };

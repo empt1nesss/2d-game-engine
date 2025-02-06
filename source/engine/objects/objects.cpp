@@ -1,6 +1,7 @@
 #include "objects.hpp"
 
 #include <cmath>
+#include <corecrt_math_defines.h>
 
 
 std::vector<Engine::Object*> Engine::Object::m_objects;
@@ -412,19 +413,19 @@ Engine::RectObject::RectObject(sf::Vector2f size, sf::Vector2f pos) :
 
 
 
-Engine::CircleObject::CircleObject(float radius, sf::Vector2f pos, uint vertex_count) :
+Engine::CircleObject::CircleObject(float radius, sf::Vector2f pos, unsigned vertex_count) :
   Object(create_circle(radius, vertex_count), pos)
 {}
 
 
 
 std::vector<sf::Vector2f> Engine::CircleObject::create_circle(
-  float radius, uint vertex_count
+  float radius, unsigned vertex_count
 )
 {
   std::vector<sf::Vector2f> res(vertex_count);
 
-  for (uint v = 0; v < vertex_count; ++v) {
+  for (unsigned v = 0; v < vertex_count; ++v) {
     float angle = 2.f * M_PI / vertex_count * v;
     res[v] = {
       (float)(sin(angle) * radius),
