@@ -4,7 +4,72 @@
 #include <corecrt_math_defines.h>
 
 
-std::vector<Engine::Object*> Engine::Object::m_objects;
+void Engine::Object::ResolveCollision(const std::vector<Object*> objects)
+{
+  for (size_t i = 0; i < objects.size(); ++i) {
+    if (!objects[i]->IsCollisionEnabled())
+      continue;
+
+    for (size_t j = i + 1; j < objects.size(); ++j) {
+      if (!objects[j]->IsCollisionEnabled())
+        continue;
+
+      if (!objects[i]->IsMovementEnabled() && !objects[j]->IsMovementEnabled())
+        continue;
+
+      auto collision_info = objects[i]->get_collision_info(*objects[j]);
+      if (!collision_info.collision_detected)
+        continue;
+
+      float        correction_factor = 2.f;
+      sf::Vector2f correction        = (
+        // normalize(collision_info.normal) * (collision_info.depth * correction_factor)
+        collision_info.normal * (collision_info.depth * correction_factor)
+      );
+      
+      if (objects[i]->IsMovementEnabled())
+        objects[i]->SetPosition(objects[i]->GetPosition() + correction);
+      else
+        objects[j]->SetPosition(objects[j]->GetPosition() - correction);
+
+      if (objects[i]->GetRestitution() == 0.f && objects[j]->GetRestitution() == 0.f) {
+        objects[i]->SetSpeed({ 0.f, 0.f });
+        objects[j]->SetSpeed({ 0.f, 0.f });
+        continue;
+      }
+
+      float m1 = objects[i]->GetMass(), m2 = objects[j]->GetMass();
+
+      sf::Vector2f n = normalize(collision_info.normal);
+      sf::Vector2f t = perpendicular(n);
+      
+      float v1n = dot(objects[i]->GetSpeed(), n), v1t = dot(objects[i]->GetSpeed(), t);
+      float v2n = dot(objects[j]->GetSpeed(), n), v2t = dot(objects[j]->GetSpeed(), t);
+
+      float v1n_after = ((m1 - m2) * v1n + 2.f * m2 * v2n) / (m1 + m2);
+      float v2n_after = ((m2 - m1) * v2n + 2.f * m1 * v1n) / (m1 + m2);
+
+
+      float avg_r = (objects[i]->GetRestitution() + objects[j]->GetRestitution()) / 2.f;
+
+      if (!objects[i]->IsMovementEnabled()) {
+        objects[j]->SetSpeed(
+          (objects[j]->GetSpeed() - n * (2.f * v2n)) * avg_r
+        );
+      }
+      else if (!objects[j]->IsMovementEnabled()) {
+        objects[i]->SetSpeed(
+          (objects[i]->GetSpeed() - n * (2.f * v1n)) * avg_r
+        );
+      }
+      else {
+        objects[i]->SetSpeed((n * v1n_after + t * v1t) * avg_r);
+        objects[j]->SetSpeed((n * v2n_after + t * v2t) * avg_r);
+      }
+    }
+  }
+}
+
 
 
 Engine::Object::Object(const std::vector<sf::Vector2f> &vertices, sf::Vector2f pos) :
@@ -20,8 +85,6 @@ Engine::Object::Object(const std::vector<sf::Vector2f> &vertices, sf::Vector2f p
 
   DrawBody(false)
 {
-  m_objects.push_back(this);
-
   m_body.setPrimitiveType(sf::TriangleFan);
 
   m_body.resize(vertices.size());
@@ -259,8 +322,52 @@ bool Engine::Object::IsIntersects(const Object &object) const
   return false;
 }
 
+bool Engine::Object::IsContains(const sf::Vector2f &point) const
+{
+  bool inside = false;
+  size_t n = m_body.getVertexCount();
+  
+  for (size_t i = 0, j = n - 1; i < n; j = i++) {
+    double xi = m_body[i].position.x, yi = m_body[i].position.y;
+    double xj = m_body[j].position.x, yj = m_body[j].position.y;
+    
+    bool intersect = (
+      ((yi > point.y) != (yj > point.y)) &&
+      (point.x < (xj - xi) * (point.y - yi) / (yj - yi) + xi)
+    );
+    
+    if (intersect)
+      inside = !inside;
+  }
+  
+  return inside;
+}
 
-Engine::Object::CollisionInfo Engine::Object::GetCollisionInfo(
+
+
+bool Engine::Object::is_on_ground()
+{
+  if (!m_enable_movement)
+    return false;
+
+  if (!m_enable_gravity)
+    return true;
+  
+  // sf::Vector2f under_point = m_body[0].position;
+  // for (size_t i = 1; i < m_body.getVertexCount(); ++i)
+  //   if (m_body[i].position.y > under_point.y)
+  //     under_point = m_body[i].position;
+
+  // for (auto &object : m_objects) {
+  //   if (this != object && object->m_enable_collision)
+  //     if (object->IsContains(under_point))
+  //       return true;
+  // }
+
+  return false;
+}
+
+Engine::Object::CollisionInfo Engine::Object::get_collision_info(
   const Object &object
 ) const
 {
@@ -334,51 +441,6 @@ Engine::Object::CollisionInfo Engine::Object::GetCollisionInfo(
 
 
   return { true, best_normal, min_overlap };
-}
-
-bool Engine::Object::IsContains(const sf::Vector2f &point) const
-{
-  bool inside = false;
-  size_t n = m_body.getVertexCount();
-  
-  for (size_t i = 0, j = n - 1; i < n; j = i++) {
-    double xi = m_body[i].position.x, yi = m_body[i].position.y;
-    double xj = m_body[j].position.x, yj = m_body[j].position.y;
-    
-    bool intersect = (
-      ((yi > point.y) != (yj > point.y)) &&
-      (point.x < (xj - xi) * (point.y - yi) / (yj - yi) + xi)
-    );
-    
-    if (intersect)
-      inside = !inside;
-  }
-  
-  return inside;
-}
-
-
-
-bool Engine::Object::is_on_ground()
-{
-  if (!m_enable_movement)
-    return false;
-
-  if (!m_enable_gravity)
-    return true;
-  
-  sf::Vector2f under_point = m_body[0].position;
-  for (size_t i = 1; i < m_body.getVertexCount(); ++i)
-    if (m_body[i].position.y > under_point.y)
-      under_point = m_body[i].position;
-
-  for (auto &object : m_objects) {
-    if (this != object && object->m_enable_collision)
-      if (object->IsContains(under_point))
-        return true;
-  }
-
-  return false;
 }
 
 

@@ -26,6 +26,9 @@ public:
   sf::FloatRect GetBounds   () const { return GetBody().getBounds(); }
   float         GetMoveSpeed() const { return m_ms; }
 
+  Object&             Object()       { return *this; }
+  const class Object& Object() const { return *this; }
+
   void SetPosition(const sf::Vector2f &pos) { RectObject::SetPosition(pos); }
 
 private:

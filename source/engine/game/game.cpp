@@ -37,6 +37,9 @@ Engine::Game::Game(const Map &map, const ResourceManager &res_mgr) :
 
   // m_cube->SetSpeed({ 20.f, 10.f });
   // m_cube->SetAngularSpeed(1.f);
+
+  m_objects.push_back(m_ground);
+  m_objects.push_back(m_cube);
 }
 
 Engine::Game::~Game()
@@ -53,7 +56,8 @@ void Engine::Game::Update(uint64_t dt, const UserInput &user_input)
   update_view(dt);
   m_cube->Update(dt);
   m_ground->Update(dt);
-  update_collision();
+  
+  Object::ResolveCollision(m_objects);
 }
 
 void Engine::Game::Render(sf::RenderTarget &target)
@@ -93,6 +97,9 @@ void Engine::Game::init_player(const ResourceManager &res_mgr)
   };
   m_player = new Player(player_idle, player_running);
   m_player->SetPosition(m_map.Spawnpoint);
+
+
+  m_objects.push_back(&m_player->Object());
 }
 
 void Engine::Game::update_view(uint64_t dt)
@@ -136,72 +143,3 @@ void Engine::Game::update_view(uint64_t dt)
 
   m_view.setCenter(camera_pos);
 }
-
-
-void Engine::Game::update_collision()
-{
-  auto objects = Engine::Object::GetAllObjects();
-  for (size_t i = 0; i < objects.size(); ++i) {
-    if (!objects[i]->IsCollisionEnabled())
-      continue;
-
-    for (size_t j = i + 1; j < objects.size(); ++j) {
-      if (!objects[j]->IsCollisionEnabled())
-        continue;
-
-      if (!objects[i]->IsMovementEnabled() && !objects[j]->IsMovementEnabled())
-        continue;
-
-      auto collision_info = objects[i]->GetCollisionInfo(*objects[j]);
-      if (!collision_info.collision_detected)
-        continue;
-
-      float        correction_factor = 2.f;
-      sf::Vector2f correction        = (
-        // normalize(collision_info.normal) * (collision_info.depth * correction_factor)
-        collision_info.normal * (collision_info.depth * correction_factor)
-      );
-      
-      if (objects[i]->IsMovementEnabled())
-        objects[i]->SetPosition(objects[i]->GetPosition() + correction);
-      else
-        objects[j]->SetPosition(objects[j]->GetPosition() - correction);
-
-      if (objects[i]->GetRestitution() == 0.f && objects[j]->GetRestitution() == 0.f) {
-        objects[i]->SetSpeed({ 0.f, 0.f });
-        objects[j]->SetSpeed({ 0.f, 0.f });
-        continue;
-      }
-
-      float m1 = objects[i]->GetMass(), m2 = objects[j]->GetMass();
-
-      sf::Vector2f n = normalize(collision_info.normal);
-      sf::Vector2f t = perpendicular(n);
-      
-      float v1n = dot(objects[i]->GetSpeed(), n), v1t = dot(objects[i]->GetSpeed(), t);
-      float v2n = dot(objects[j]->GetSpeed(), n), v2t = dot(objects[j]->GetSpeed(), t);
-
-      float v1n_after = ((m1 - m2) * v1n + 2.f * m2 * v2n) / (m1 + m2);
-      float v2n_after = ((m2 - m1) * v2n + 2.f * m1 * v1n) / (m1 + m2);
-
-
-      float avg_r = (objects[i]->GetRestitution() + objects[j]->GetRestitution()) / 2.f;
-
-      if (!objects[i]->IsMovementEnabled()) {
-        objects[j]->SetSpeed(
-          (objects[j]->GetSpeed() - n * (2.f * v2n)) * avg_r
-        );
-      }
-      else if (!objects[j]->IsMovementEnabled()) {
-        objects[i]->SetSpeed(
-          (objects[i]->GetSpeed() - n * (2.f * v1n)) * avg_r
-        );
-      }
-      else {
-        objects[i]->SetSpeed((n * v1n_after + t * v1t) * avg_r);
-        objects[j]->SetSpeed((n * v2n_after + t * v2t) * avg_r);
-      }
-    }
-  }
-}
-

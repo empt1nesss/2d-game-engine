@@ -29,6 +29,8 @@ private:
   Map m_map;
 
   sf::View m_view;
+  
+  std::vector<Object*> m_objects;
 
   Player      *m_player;
   Object      *m_cube;
@@ -39,8 +41,7 @@ private:
   void init_map_bg();
   void init_player(const ResourceManager &res_mgr);
 
-  void update_view     (uint64_t dt);
-  void update_collision();
+  void update_view(uint64_t dt);
 
 };
 

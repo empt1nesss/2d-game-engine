@@ -12,11 +12,7 @@ class Engine::Object
 {
 public:
 
-  struct CollisionInfo {
-    bool         collision_detected;
-    sf::Vector2f normal;
-    float        depth;
-  };
+  static void ResolveCollision(const std::vector<Object*> objects);
 
 
   Object(
@@ -64,20 +60,22 @@ public:
   sf::Vector2f           GetPosition() const { return m_center; }
   const sf::VertexArray& GetBody    () const { return m_body; }
 
-  static const std::vector<Object*>& GetAllObjects() { return m_objects; }
-
   bool OnGround() const { return m_on_ground; }
 
-  bool          IsIntersects    (const Object       &object) const;
-  CollisionInfo GetCollisionInfo(const Object       &object) const;
-  bool          IsContains      (const sf::Vector2f &point)  const;
+  bool IsIntersects(const Object       &object) const;
+  bool IsContains  (const sf::Vector2f &point)  const;
 
 
   bool operator==(const Object &object) const { return this == &object; }
 
 private:
 
-  static std::vector<Object*> m_objects;
+  struct CollisionInfo {
+    bool         collision_detected;
+    sf::Vector2f normal;
+    float        depth;
+  };
+
 
   sf::VertexArray m_body;
   AnimatedSprite  m_sprite;
@@ -96,7 +94,8 @@ private:
   bool m_enable_rotation;
 
 
-  bool is_on_ground();
+  bool          is_on_ground      ();
+  CollisionInfo get_collision_info(const Object &object) const;
 
 };
 
