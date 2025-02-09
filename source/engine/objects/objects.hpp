@@ -38,55 +38,60 @@ public:
   bool IsGravityEnabled  () const { return m_enable_gravity; };
   bool IsRotationEnabled () const { return m_enable_rotation; }
 
-  bool SetSpeed       (const sf::Vector2f &v);
-  bool SetAngularSpeed(float               av);
-  bool SetMass        (float               m);
-  bool SetRestitution (float               val);
+  bool SetSpeed            (const sf::Vector2f &v);
+  bool SetAngularSpeed     (float               av);
+  bool SetMass             (float               m);
+  bool SetRestitutionFactor(float               e);
+  bool SetFrictionFactor   (float               mu);
 
-  sf::Vector2f GetSpeed       () const { return m_v; }
-  float        GetAngularSpeed() const { return m_av; }
-  float        GetMass        () const { return m_m; }
-  float        GetRestitution () const { return m_restitution; }
+  sf::Vector2f GetSpeed            () const { return m_v; }
+  float        GetAngularSpeed     () const { return m_av; }
+  float        GetMass             () const { return m_m; }
+  float        GetRestitutionFactor() const { return m_e; }
+  float        GetFrictionFactor   () const { return m_mu; }
 
   void SetPosition      (sf::Vector2f pos);
   void Move             (sf::Vector2f s);
+  void Rotate           (float        rad,          sf::Vector2f center);
   void SetTexture       (TextureAtlas texture_atlas);
   void SetSpriteScale   (sf::Vector2f scale);
   void SetSpriteOrigin  (sf::Vector2f origin);
   void SetSpriteRotation(float        angle);
   void SetBodyColor     (sf::Color    color);
 
+  void SetRotationCenter(sf::Vector2f pos);
+
   const AnimatedSprite&  GetSprite  () const { return m_sprite; }
   sf::Vector2f           GetPosition() const { return m_center; }
   const sf::VertexArray& GetBody    () const { return m_body; }
 
-  bool OnGround() const { return m_on_ground; }
-
-  bool IsIntersects(const Object       &object) const;
-  bool IsContains  (const sf::Vector2f &point)  const;
-
-
-  bool operator==(const Object &object) const { return this == &object; }
+  bool                      Contains       (const sf::Vector2f &point)  const;
+  std::vector<sf::Vector2f> GetIntersection(const Object       &object) const;
 
 private:
 
   struct CollisionInfo {
-    bool         collision_detected;
-    sf::Vector2f normal;
-    float        depth;
+    bool                      collision_detected;
+    sf::Vector2f              normal;
+    float                     depth;
+    std::vector<sf::Vector2f> contact_points;
   };
 
 
   sf::VertexArray m_body;
   AnimatedSprite  m_sprite;
   sf::Vector2f    m_center;
+  sf::Vector2f    m_mass_center;
+  sf::Vector2f    m_rotation_center;
 
   sf::Vector2f m_v;
   float        m_av;
   float        m_m;
-  float        m_restitution;
+  float        m_e;
+  float        m_I;
+  float        m_mu;
 
-  bool m_on_ground;
+  bool m_in_contact;
 
   bool m_enable_collision;
   bool m_enable_movement;
@@ -94,8 +99,8 @@ private:
   bool m_enable_rotation;
 
 
-  bool          is_on_ground      ();
   CollisionInfo get_collision_info(const Object &object) const;
+  void          update_inertia    ();
 
 };
 

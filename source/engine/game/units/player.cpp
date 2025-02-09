@@ -17,7 +17,7 @@ Engine::Game::Player::Player(TextureAtlas idle, TextureAtlas run) :
   // SetRestitution(1.f);
 
   EnableMovement(true);
-  EnableGravity(true);
+  // EnableGravity(true);
   EnableCollision(true);
 
   DrawBody = true;

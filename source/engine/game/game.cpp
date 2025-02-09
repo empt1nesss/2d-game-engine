@@ -18,13 +18,15 @@ Engine::Game::Game(const Map &map, const ResourceManager &res_mgr) :
   
   m_ground->DrawBody = true;
   m_ground->EnableCollision(true);
-  // m_ground->SetRestitution(1.f);
+  m_ground->Rotate(0.1f, m_ground->GetPosition());
+  m_ground->SetFrictionFactor(0.3f);
+  // m_ground->SetRestitutionFactor(0.5f);
   // m_ground->EnableMovement(true);
 
   m_ground->SetBodyColor(sf::Color::White);
 
 
-  m_cube = new CircleObject(100.f, { 800.f, 200.f }, 6);
+  m_cube = new CircleObject(100.f, { 300.f, 200.f }, 4);
   // m_cube->SetPosition({ 100.f, 200.f });
 
   m_cube->DrawBody = true;
@@ -33,17 +35,20 @@ Engine::Game::Game(const Map &map, const ResourceManager &res_mgr) :
   m_cube->EnableRotation(true);
   m_cube->EnableCollision(true);
   m_cube->EnableGravity(true);
-  m_cube->SetRestitution(1.f);
+  m_cube->SetFrictionFactor(0.3f);
+  // m_cube->SetRestitutionFactor(0.5f);
 
   // m_cube->SetSpeed({ 20.f, 10.f });
-  // m_cube->SetAngularSpeed(1.f);
+  // m_cube->SetAngularSpeed(2.f);
+  m_cube->Rotate(0.4f, m_cube->GetPosition());
 
-  m_objects.push_back(m_ground);
   m_objects.push_back(m_cube);
+  m_objects.push_back(m_ground);
 }
 
 Engine::Game::~Game()
 {
+  m_objects.clear();
   delete m_cube;
   delete m_player;
   delete m_bg;
@@ -99,7 +104,7 @@ void Engine::Game::init_player(const ResourceManager &res_mgr)
   m_player->SetPosition(m_map.Spawnpoint);
 
 
-  m_objects.push_back(&m_player->Object());
+  // m_objects.push_back(&m_player->Object());
 }
 
 void Engine::Game::update_view(uint64_t dt)
