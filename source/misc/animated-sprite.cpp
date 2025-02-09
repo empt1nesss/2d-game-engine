@@ -2,9 +2,10 @@
 
 
 AnimatedSprite::AnimatedSprite() :
-  Pause(false),
-  m_cur_frame(0),
-  m_frame_time(0.f)
+  Pause       (false),
+  m_cur_frame (0),
+  m_frame_time(0.f),
+  m_rotation  (0.f)
 {}
 
 AnimatedSprite::AnimatedSprite(const sf::Texture &texture, std::vector<Frame> frames) :
@@ -14,6 +15,7 @@ AnimatedSprite::AnimatedSprite(const sf::Texture &texture, std::vector<Frame> fr
 {
   if (!m_frames.empty()) {
     Sprite::setTextureRect(m_frames[0].rect);
+    m_origin = Sprite::getOrigin();
   }
 }
 
@@ -47,6 +49,8 @@ void AnimatedSprite::Update(uint64_t dt)
       Sprite::setTexture(*m_frames[m_cur_frame].texture);
 
     Sprite::setTextureRect(m_frames[m_cur_frame].rect);
+    Sprite::setOrigin(m_origin);
+    Sprite::setRotation(deg(m_rotation));
   }
 }
 
@@ -55,6 +59,7 @@ void AnimatedSprite::AddFrame(const Frame &frame)
   m_frames.push_back(frame);
   if (m_frames.size() == 1) {
     Sprite::setTextureRect(m_frames[0].rect);
+    m_origin = Sprite::getOrigin();
   }
 }
 
@@ -69,6 +74,7 @@ void AnimatedSprite::AddFrames(const std::vector<Frame> &frames)
 
   if (i == 0 && !frames.empty()) {
     Sprite::setTextureRect(m_frames[0].rect);
+    m_origin = Sprite::getOrigin();
   }
 }
 
@@ -82,6 +88,7 @@ void AnimatedSprite::SwitchAnimation(TextureAtlas texture_atlas)
 {
   m_frames.resize(texture_atlas.cols * texture_atlas.rows);
   sf::Sprite::setTexture(*texture_atlas.texture);
+  m_origin = Sprite::getOrigin();
   for (unsigned row = 0; row < texture_atlas.rows; ++row) {
     for (unsigned col = 0; col < texture_atlas.cols; ++col) {
       m_frames[row * texture_atlas.cols + col] = {
@@ -96,8 +103,12 @@ void AnimatedSprite::SwitchAnimation(TextureAtlas texture_atlas)
       };
     } 
   }
-  if (!m_frames.empty())
+  if (!m_frames.empty()) {
     Sprite::setTextureRect(m_frames[0].rect);
+  }
+
+  sf::Sprite::setRotation(deg(m_rotation));
+
   ResetTime();
 }
 
@@ -105,4 +116,16 @@ void AnimatedSprite::ResetTime()
 {
   m_frame_time = 0.f;
   m_cur_frame  = 0;
+}
+
+void AnimatedSprite::setOrigin(const sf::Vector2f &val)
+{
+  m_origin = val;
+  sf::Sprite::setOrigin(val);
+}
+
+void AnimatedSprite::rotate(float angle)
+{
+  m_rotation += angle;
+  sf::Sprite::setRotation(deg(m_rotation));
 }

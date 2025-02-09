@@ -39,6 +39,9 @@ public:
 
   void ResetTime();
 
+  void setOrigin(const sf::Vector2f &val);
+  void rotate   (float angle);
+
 
   // AnimatedSprite(const AnimatedSprite&) = delete;
 
@@ -47,6 +50,8 @@ private:
   std::vector<Frame> m_frames;
   uint64_t           m_cur_frame;
   float              m_frame_time;
+  sf::Vector2f       m_origin;
+  float              m_rotation;
 
 };
 

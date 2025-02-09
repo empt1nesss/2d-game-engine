@@ -1,6 +1,7 @@
 #include "misc.hpp"
 
 #include <cmath>
+#include <corecrt_math_defines.h>
 
 
 float dot(const sf::Vector2f &v1, const sf::Vector2f &v2)
@@ -29,5 +30,15 @@ sf::Vector2f perpendicular(const sf::Vector2f &v)
 float length(const sf::Vector2f &v)
 {
   return std::sqrt(v.x * v.x + v.y * v.y);
+}
+
+float deg(float rad)
+{
+  return rad / M_PI * 180.f;
+}
+
+float rad(float deg)
+{
+  return deg * M_PI / 180.f;
 }
 

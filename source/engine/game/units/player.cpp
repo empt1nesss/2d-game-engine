@@ -18,11 +18,14 @@ Engine::Game::Player::Player(TextureAtlas idle, TextureAtlas run) :
 
   EnableMovement(true);
   EnableGravity(true);
+  // EnableRotation(true);
   EnableCollision(true);
 
   // DrawBody = true;
 
   // SetSpeed({ 250.f, -50.f });
+
+  // Rotate(1.f, GetPosition());
 }
 
 Engine::Game::Player::~Player()
@@ -56,7 +59,7 @@ void Engine::Game::Player::Update(uint64_t dt, const UserInput &user_input)
       SetTexture(m_idle_anim);
     }
     else {
-      SetFrictionFactor(0.f);
+      SetFrictionFactor(0.01f);
       SetTexture(m_run_anim);
     }
 
@@ -71,8 +74,6 @@ void Engine::Game::Player::Update(uint64_t dt, const UserInput &user_input)
     SetSpeed(GetSpeed() - m_move_v + mv);
     m_move_v.x = mv.x;
   }
-
-  // printf("\r%f        ", GetFr)
 
   RectObject::Update(dt);
 }

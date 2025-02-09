@@ -23,6 +23,8 @@ float        cross        (const sf::Vector2f &v1, const sf::Vector2f &v2);
 sf::Vector2f normalize    (const sf::Vector2f &v);
 sf::Vector2f perpendicular(const sf::Vector2f &v);
 float        length       (const sf::Vector2f &v);
+float        deg          (float               rad);
+float        rad          (float               deg);
 
 
 #endif // !MISC_MISC_HPP
