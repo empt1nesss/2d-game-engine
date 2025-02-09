@@ -29,17 +29,14 @@ private:
   Map m_map;
 
   sf::View m_view;
-  
-  std::map<std::string, Object> m_objects;
 
-  Player      *m_player;
-  sf::Sprite  *m_bg;
+  Player *m_player;
 
 
-  void init_map_bg();
   void init_player(const ResourceManager &res_mgr);
 
-  void update_view(uint64_t dt);
+  void update_view(uint64_t            dt);
+  void update_bg  (const sf::Vector2f &cam_shift);
 
 };
 

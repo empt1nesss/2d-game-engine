@@ -66,8 +66,8 @@ void Engine::init_game()
 
   Map map;
   map.Size = { 2000, 2000 };
-  map.BgTexture = *m_resource_manager.GetTexture("bg");
   map.Spawnpoint = { 100, 500 };
+  map.BgObjects.emplace(std::move(Map::BgObject(*m_resource_manager.GetTexture("bg"), 0.5)));
 
   m_game = new Game(map, m_resource_manager);
 }
