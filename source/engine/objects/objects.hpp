@@ -12,19 +12,21 @@ class Engine::Object
 {
 public:
 
-  static void ResolveCollision(const std::vector<Object*> objects);
+  static void ResolveCollision(const std::vector<Object*> &objects);
 
 
   Object(
     const std::vector<sf::Vector2f> &vertices,
     sf::Vector2f                     pos     ={ 0.f, 0.f }
   );
+  virtual ~Object() = default;
 
 
   virtual void Update(uint64_t          dt);
   virtual void Render(sf::RenderTarget &target);
 
 
+  int  ZIndex;
   bool DrawBody;
 
 

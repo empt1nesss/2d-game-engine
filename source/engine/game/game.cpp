@@ -13,56 +13,93 @@ Engine::Game::Game(const Map &map, const ResourceManager &res_mgr) :
   init_map_bg();
   init_player(res_mgr);
 
+  m_objects.emplace("wall1", std::move(RectObject({ 40.f, 500.f }, { 300.f, 400.f })));
+  m_objects.emplace("wall2", std::move(RectObject({ 40.f, 500.f }, { 700.f, 400.f })));
 
-  m_ground = new RectObject({ 2000.f, 100.f }, { 1000.f, 700.f });
-  
-  m_ground->DrawBody = true;
-  m_ground->EnableCollision(true);
-  m_ground->Rotate(0.1f, m_ground->GetPosition());
-  m_ground->SetFrictionFactor(0.3f);
-  // m_ground->SetRestitutionFactor(0.5f);
-  // m_ground->EnableMovement(true);
+  m_objects.emplace("floor1", std::move(RectObject({ 500.f, 40.f }, { 500.f, 200.f })));
+  m_objects.emplace("floor2", std::move(RectObject({ 500.f, 40.f }, { 500.f, 600.f })));
 
-  m_ground->SetBodyColor(sf::Color::White);
+  m_objects.emplace("floor3", std::move(RectObject({ 1000.f, 70.f }, { 1400.f, 700.f })));
 
 
-  m_cube = new CircleObject(100.f, { 300.f, 200.f }, 4);
-  // m_cube->SetPosition({ 100.f, 200.f });
+  m_objects.find("wall1")->second.SetBodyColor(sf::Color::White);
+  m_objects.find("wall1")->second.DrawBody = true;
+  m_objects.find("wall1")->second.EnableCollision(true);
+  m_objects.find("wall1")->second.SetRestitutionFactor(1.f);
 
-  m_cube->DrawBody = true;
+  m_objects.find("wall2")->second.SetBodyColor(sf::Color::White);
+  m_objects.find("wall2")->second.DrawBody = true;
+  m_objects.find("wall2")->second.EnableCollision(true);
+  m_objects.find("wall2")->second.SetRestitutionFactor(1.f);
 
-  m_cube->EnableMovement(true);
-  m_cube->EnableRotation(true);
-  m_cube->EnableCollision(true);
-  m_cube->EnableGravity(true);
-  m_cube->SetFrictionFactor(0.3f);
-  // m_cube->SetRestitutionFactor(0.5f);
+  m_objects.find("floor1")->second.SetBodyColor(sf::Color::White);
+  m_objects.find("floor1")->second.DrawBody = true;
+  m_objects.find("floor1")->second.EnableCollision(true);
+  m_objects.find("floor1")->second.SetRestitutionFactor(1.f);
 
-  // m_cube->SetSpeed({ 20.f, 10.f });
-  // m_cube->SetAngularSpeed(2.f);
-  m_cube->Rotate(0.4f, m_cube->GetPosition());
+  m_objects.find("floor2")->second.SetBodyColor(sf::Color::White);
+  m_objects.find("floor2")->second.DrawBody = true;
+  m_objects.find("floor2")->second.EnableCollision(true);
+  m_objects.find("floor2")->second.SetRestitutionFactor(1.f);
 
-  m_objects.push_back(m_cube);
-  m_objects.push_back(m_ground);
+  m_objects.find("floor3")->second.SetBodyColor(sf::Color::White);
+  m_objects.find("floor3")->second.DrawBody = true;
+  m_objects.find("floor3")->second.EnableCollision(true);
+  m_objects.find("floor3")->second.SetRestitutionFactor(1.f);
+  m_objects.find("floor3")->second.SetFrictionFactor(0.f);
+  m_objects.find("floor3")->second.Rotate(0.05, m_objects.find("floor3")->second.GetPosition());
+
+  m_objects.emplace("circle1", std::move(CircleObject(50.f, { 1000.f, 400.f }, 5)));
+  m_objects.find("circle1")->second.EnableMovement(true);
+  m_objects.find("circle1")->second.EnableCollision(true);
+  m_objects.find("circle1")->second.EnableGravity(true);
+  m_objects.find("circle1")->second.EnableRotation(true);
+  m_objects.find("circle1")->second.Rotate(0.2, m_objects.find("circle1")->second.GetPosition());
+  m_objects.find("circle1")->second.SetFrictionFactor(0.f);
+  m_objects.find("circle1")->second.DrawBody = true;
 }
 
 Engine::Game::~Game()
-{
-  m_objects.clear();
-  delete m_cube;
-  delete m_player;
-  delete m_bg;
-}
+{}
 
 
 void Engine::Game::Update(uint64_t dt, const UserInput &user_input)
 {
   m_player->Update(dt, user_input);
+
+
+  if (user_input.GetKeyState(sf::Keyboard::Space) == UserInput::PRESSED) {
+    static int count = 1;
+    static sf::Color color = sf::Color::Red;
+
+    auto p = m_objects.emplace("ball" + std::to_string(count), std::move(CircleObject(20.f, { 500.f, 300.f })));
+    p.first->second.DrawBody = true;
+    p.first->second.SetBodyColor(color);
+    
+    p.first->second.EnableCollision(true);
+    p.first->second.EnableMovement(true);
+    p.first->second.EnableGravity(true);
+    p.first->second.EnableRotation(true);
+
+    p.first->second.SetRestitutionFactor(1.f);
+    p.first->second.SetSpeed({ 100.f, 0.f });
+
+    ++count;
+    color.b += 50;
+  }
+
+
+  std::vector<Object*> update_objects;
+  for (auto &obj : m_objects) {
+    // if object needs to update
+    obj.second.Update(dt);
+    update_objects.push_back(&obj.second);
+  }
+  update_objects.push_back(&m_player->Object());
+
+  Object::ResolveCollision(update_objects);
+
   update_view(dt);
-  m_cube->Update(dt);
-  m_ground->Update(dt);
-  
-  Object::ResolveCollision(m_objects);
 }
 
 void Engine::Game::Render(sf::RenderTarget &target)
@@ -70,9 +107,46 @@ void Engine::Game::Render(sf::RenderTarget &target)
   target.setView(m_view);
 
   target.draw(*m_bg);
-  m_ground->Render(target);
-  m_player->Render(target);
-  m_cube->Render(target);
+
+  std::vector<Object*> render_objects { &m_player->Object() };
+  for (auto &obj : m_objects) {
+    // if object needs to render
+
+    size_t i;
+    size_t left_i = 0, right_i = render_objects.size();
+
+    for (;;) {
+      i = (left_i + right_i) / 2 + (left_i + right_i) % 2;
+      if (i == render_objects.size()) {
+        if (render_objects.size() > i - 1 && render_objects[i - 1]->ZIndex > obj.second.ZIndex) {
+          right_i = i - 1;
+          continue;
+        }
+
+        break;
+      }
+      if (i == 0) {
+        if (render_objects.size() > 1 && render_objects[1]->ZIndex < obj.second.ZIndex) {
+          left_i = 1;
+          continue;
+        }
+
+        break;
+      }
+      
+      if (render_objects[i]->ZIndex < obj.second.ZIndex)
+        left_i = i;
+      else if (render_objects[i - 1]->ZIndex > obj.second.ZIndex)
+        right_i = i - 1;
+      else
+        break;
+    }
+
+    render_objects.insert(render_objects.begin() + i, &obj.second);
+  }
+
+  for (auto &obj : render_objects)
+    obj->Render(target);
 }
 
 

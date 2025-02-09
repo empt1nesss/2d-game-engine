@@ -30,11 +30,9 @@ private:
 
   sf::View m_view;
   
-  std::vector<Object*> m_objects;
+  std::map<std::string, Object> m_objects;
 
   Player      *m_player;
-  Object      *m_cube;
-  Object      *m_ground;
   sf::Sprite  *m_bg;
 
 

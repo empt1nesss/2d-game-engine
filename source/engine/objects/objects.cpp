@@ -4,7 +4,7 @@
 #include <corecrt_math_defines.h>
 
 
-void Engine::Object::ResolveCollision(const std::vector<Object*> objects)
+void Engine::Object::ResolveCollision(const std::vector<Object*> &objects)
 {
   for (auto &p_obj : objects)
     p_obj->m_in_contact = false;
@@ -143,7 +143,8 @@ Engine::Object::Object(const std::vector<sf::Vector2f> &vertices, sf::Vector2f p
   m_e (0.f),
   m_mu(1.f),
 
-  DrawBody(false)
+  DrawBody(false),
+  ZIndex(0)
 {
   m_body.setPrimitiveType(sf::TriangleFan);
 
