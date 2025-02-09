@@ -13,8 +13,8 @@ Engine::Game::Player::Player(TextureAtlas idle, TextureAtlas run) :
   SetTexture(idle);
   SetSpriteScale(sf::Vector2f{ 4.f, 4.f });
   SetSpriteOrigin({ 54.5f, 62.f });
-  SetMass(5.f);
-  // SetRestitution(1.f);
+  SetMass(100.f);
+  SetFrictionFactor(1.f);
 
   EnableMovement(true);
   EnableGravity(true);
@@ -35,51 +35,44 @@ void Engine::Game::Player::Update(uint64_t dt, const UserInput &user_input)
 {
   static bool falling = true;
   sf::Vector2f mv = { 0.f, 0.f };
-
   
   
-  if (!OnGround())
-  {
-    // if (!falling)
-    // // switch animation to falling anim
-    falling = true;
+  if (user_input.GetKeyState(sf::Keyboard::D) > 0)
+    mv.x += 1.f;
+  if (user_input.GetKeyState(sf::Keyboard::A) > 0)
+    mv.x -= 1.f;
+  if (user_input.GetKeyState(sf::Keyboard::Space) == UserInput::PRESSED && OnGround())
+    mv.y = -20.f;
+  // if (user_input.GetKeyState(sf::Keyboard::S) > 0)
+  //   mv.y += 1.f;
+  // if (user_input.GetKeyState(sf::Keyboard::W) > 0)
+  //   mv.y -= 1.f;
 
-    m_move_v = { 0.f, 0.f };
-  }
-  else {
-    if (user_input.GetKeyState(sf::Keyboard::D) > 0)
-      mv.x += 1.f;
-    if (user_input.GetKeyState(sf::Keyboard::A) > 0)
-      mv.x -= 1.f;
-    if (user_input.GetKeyState(sf::Keyboard::Space) == UserInput::PRESSED)
-      mv.y = -20.f;
-    // if (user_input.GetKeyState(sf::Keyboard::S) > 0) {
-    //   mv.y += 1.f;
-    // }
-    // if (user_input.GetKeyState(sf::Keyboard::W) > 0) {
-    //   mv.y -= 1.f;
-    // }
+  mv = normalize(mv) * m_ms;
 
-    mv = normalize(mv) * m_ms;
-
-    if (mv.x != m_move_v.x || falling) {
-      if (mv.x == 0.f)
-        SetTexture(m_idle_anim);
-      else
-        SetTexture(m_run_anim);
-
-      if (mv.x < 0)
-        SetSpriteScale({ -4.f, 4.f});
-      else 
-        SetSpriteScale({ 4.f, 4.f});
+  if (mv.x != m_move_v.x || falling) {
+    if (mv.x == 0.f) {
+      SetFrictionFactor(1.f);
+      SetTexture(m_idle_anim);
     }
-    falling = false;
-
-    if (mv != m_move_v) {
-      SetSpeed(GetSpeed() - m_move_v + mv);
-      m_move_v.x = mv.x;
+    else {
+      SetFrictionFactor(0.f);
+      SetTexture(m_run_anim);
     }
+
+    if (mv.x < 0)
+      SetSpriteScale({ -4.f, 4.f});
+    else 
+      SetSpriteScale({ 4.f, 4.f});
   }
+  falling = false;
+
+  if (mv != m_move_v) {
+    SetSpeed(GetSpeed() - m_move_v + mv);
+    m_move_v.x = mv.x;
+  }
+
+  // printf("\r%f        ", GetFr)
 
   RectObject::Update(dt);
 }

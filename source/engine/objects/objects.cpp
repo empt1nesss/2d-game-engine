@@ -56,8 +56,16 @@ void Engine::Object::ResolveCollision(const std::vector<Object*> &objects)
       sf::Vector2f r1 = contact_point - objects[i]->m_mass_center;
       sf::Vector2f r2 = contact_point - objects[j]->m_mass_center;
 
-      sf::Vector2f v1_contact = objects[i]->m_v + objects[i]->m_av * perpendicular(r1);
-      sf::Vector2f v2_contact = objects[j]->m_v + objects[j]->m_av * perpendicular(r2);
+      sf::Vector2f v1_contact = (
+        objects[i]->m_v + (
+          objects[i]->m_enable_rotation ? objects[i]->m_av * perpendicular(r1) : sf::Vector2f(0.f, 0.f)
+        )
+      );
+      sf::Vector2f v2_contact = (
+        objects[j]->m_v + (
+          objects[j]->m_enable_rotation ? objects[j]->m_av * perpendicular(r2) : sf::Vector2f(0.f, 0.f)
+        )
+      );
 
       sf::Vector2f rel_v = v1_contact - v2_contact;
 
@@ -70,11 +78,17 @@ void Engine::Object::ResolveCollision(const std::vector<Object*> &objects)
       float r1_cross_n = cross(r1, collision_info.normal);
       float r2_cross_n = cross(r2, collision_info.normal);
 
-      float inv_I1 = (objects[i]->m_I > 0.f) ? 1.f / objects[i]->m_I : 0.f;
-      float inv_I2 = (objects[j]->m_I > 0.f) ? 1.f / objects[j]->m_I : 0.f;
+      float inv_I1 = (objects[i]->m_enable_rotation && objects[i]->m_I > 0.f) ? 1.f / objects[i]->m_I : 0.f;
+      float inv_I2 = (objects[j]->m_enable_rotation && objects[j]->m_I > 0.f) ? 1.f / objects[j]->m_I : 0.f;
+
+      float normal_denom = (
+        inv_m1 + inv_m2 +
+        (objects[i]->m_enable_rotation ? (r1_cross_n * r1_cross_n) * inv_I1 : 0.f) +
+        (objects[j]->m_enable_rotation ? (r2_cross_n * r2_cross_n) * inv_I2 : 0.f)
+      );
 
       float _j = -(1.f + e) * v_along_normal;
-      _j /= (inv_m1 + inv_m2 + (r1_cross_n * r1_cross_n) * inv_I1 + (r2_cross_n * r2_cross_n) * inv_I2);
+      _j /= normal_denom;
 
       sf::Vector2f impulse = _j * collision_info.normal;
 
@@ -82,9 +96,10 @@ void Engine::Object::ResolveCollision(const std::vector<Object*> &objects)
       objects[i]->m_v += impulse * inv_m1;
       objects[j]->m_v -= impulse * inv_m2;
 
-      objects[i]->m_av += cross(r1, impulse) * inv_I1;
-      objects[j]->m_av -= cross(r2, impulse) * inv_I2;
-
+      if (objects[i]->m_enable_rotation)
+        objects[i]->m_av += cross(r1, impulse) * inv_I1;
+      if (objects[j]->m_enable_rotation)
+        objects[j]->m_av -= cross(r2, impulse) * inv_I2;
 
       sf::Vector2f tan = rel_v - collision_info.normal * dot(rel_v, collision_info.normal);
       float tan_len = std::sqrt(dot(tan, tan));
@@ -95,7 +110,11 @@ void Engine::Object::ResolveCollision(const std::vector<Object*> &objects)
 
       float r1_cross_t = cross(r1, tan);
       float r2_cross_t = cross(r2, tan);
-      float f_denom = inv_m1 + inv_m2 + (r1_cross_t * r1_cross_t) * inv_I1 + (r2_cross_t * r2_cross_t) * inv_I2;
+      float f_denom = (
+        inv_m1 + inv_m2 +
+        (objects[i]->m_enable_rotation ? (r1_cross_t * r1_cross_t) * inv_I1 : 0.f) +
+        (objects[j]->m_enable_rotation ? (r2_cross_t * r2_cross_t) * inv_I2 : 0.f)
+      );
       
       float jt = 0.f;
       if (f_denom > 0.f)
@@ -107,11 +126,14 @@ void Engine::Object::ResolveCollision(const std::vector<Object*> &objects)
         jt = (jt < 0.f) ? -_j * mu : _j * mu;
 
       sf::Vector2f f_impulse = jt * tan;
+
       objects[i]->m_v += f_impulse * inv_m1;
       objects[j]->m_v -= f_impulse * inv_m2;
-      objects[i]->m_av += cross(r1, f_impulse) * inv_I1;
-      objects[j]->m_av -= cross(r2, f_impulse) * inv_I2;
 
+      if (objects[i]->m_enable_rotation)
+        objects[i]->m_av += cross(r1, f_impulse) * inv_I1;
+      if (objects[j]->m_enable_rotation)
+        objects[j]->m_av -= cross(r2, f_impulse) * inv_I2;
 
       const float EPSILON = 1e-6f;
 

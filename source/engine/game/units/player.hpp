@@ -38,6 +38,7 @@ private:
 
   float m_ms;
 
+  bool         m_is_running;
   sf::Vector2f m_move_v;
 
 };
