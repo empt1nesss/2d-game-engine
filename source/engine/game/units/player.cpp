@@ -13,7 +13,8 @@ Engine::Game::Player::Player(TextureAtlas idle, TextureAtlas run) :
   SetTexture(idle);
   SetSpriteScale(sf::Vector2f{ 4.f, 4.f });
   SetSpriteOrigin({ 54.5f, 62.f });
-  SetMass(100.f);
+  SetMass(60.f);
+  SetRestitutionFactor(0.f);
   SetFrictionFactor(1.f);
 
   EnableMovement(true);
@@ -23,7 +24,7 @@ Engine::Game::Player::Player(TextureAtlas idle, TextureAtlas run) :
 
   // DrawBody = true;
 
-  // SetSpeed({ 250.f, -50.f });
+  // SetSpeed({ 100.f, 350.f });
 
   // Rotate(1.f, GetPosition());
 }
@@ -44,8 +45,6 @@ void Engine::Game::Player::Update(uint64_t dt, const UserInput &user_input)
     mv.x += 1.f;
   if (user_input.GetKeyState(sf::Keyboard::A) > 0)
     mv.x -= 1.f;
-  if (user_input.GetKeyState(sf::Keyboard::Space) == UserInput::PRESSED && OnGround())
-    mv.y = -20.f;
   // if (user_input.GetKeyState(sf::Keyboard::S) > 0)
   //   mv.y += 1.f;
   // if (user_input.GetKeyState(sf::Keyboard::W) > 0)
@@ -53,13 +52,16 @@ void Engine::Game::Player::Update(uint64_t dt, const UserInput &user_input)
 
   mv = normalize(mv) * m_ms;
 
+  if (user_input.GetKeyState(sf::Keyboard::Space) == UserInput::PRESSED && OnGround())
+    mv.y = -1000.f;
+
   if (mv.x != m_move_v.x || falling) {
     if (mv.x == 0.f) {
       SetFrictionFactor(1.f);
       SetTexture(m_idle_anim);
     }
     else {
-      SetFrictionFactor(0.01f);
+      SetFrictionFactor(0.f);
       SetTexture(m_run_anim);
     }
 
@@ -71,6 +73,12 @@ void Engine::Game::Player::Update(uint64_t dt, const UserInput &user_input)
   falling = false;
 
   if (mv != m_move_v) {
+    auto v = GetSpeed();
+    if (abs(v.x) < abs(m_move_v.x))
+      m_move_v.x = v.x;
+    else if ((v.x > 0.f) != (m_move_v.x > 0.f))
+      m_move_v.x *= -1.f;
+
     SetSpeed(GetSpeed() - m_move_v + mv);
     m_move_v.x = mv.x;
   }

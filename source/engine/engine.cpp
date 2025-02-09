@@ -3,7 +3,7 @@
 #include "engine/game/game.hpp"
 
 
-float Engine::GravityAcceleration = 980.f;
+float Engine::GravityAcceleration = 2000.f;
 
 
 Engine::Engine() : m_game(nullptr)

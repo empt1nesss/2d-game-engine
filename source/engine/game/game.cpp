@@ -18,12 +18,14 @@ Engine::Game::Game(const Map &map, const ResourceManager &res_mgr) :
 
   m_map.Objects[0].EnableCollision(true);
   m_map.Objects[0].SetFrictionFactor(1.f);
-  m_map.Objects[0].Rotate(0.2f, m_map.Objects[0].GetPosition());
+  // m_map.Objects[0].Rotate(0.2f, m_map.Objects[0].GetPosition());
 
   m_map.Objects[0].DrawBody = true;
-  m_map.Objects.emplace_back(std::move(CircleObject(200.f, { 200.f, 100.f })));
 
-  // m_map.Objects[1].EnableCollision(true);
+
+  m_map.Objects.emplace_back(std::move(CircleObject(50.f, { 200.f, 100.f }, 48)));
+
+  m_map.Objects[1].EnableCollision(true);
   m_map.Objects[1].EnableMovement(true);
   m_map.Objects[1].EnableGravity(true);
   m_map.Objects[1].EnableRotation(true);
@@ -129,8 +131,9 @@ void Engine::Game::init_player(const ResourceManager &res_mgr)
 
 void Engine::Game::update_view(uint64_t dt)
 {
-  const float max_x = 200.f, max_y = 100.f;
-  const float min_x = 100.f, min_y = 50.f;
+  const float max_x    = 200.f, max_y = 100.f;
+  const float min_x    = 100.f, min_y = 50.f;
+  // const float border_x = 200.f, border_y = 100.f;
 
   auto pl_pos     = m_player->GetPosition();
   auto camera_pos = m_view.getCenter();;
