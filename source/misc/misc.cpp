@@ -15,6 +15,9 @@ float cross(const sf::Vector2f &v1, const sf::Vector2f &v2)
 
 sf::Vector2f normalize(const sf::Vector2f &v)
 {
+  if (v.x == 0.f && v.y == 0.f)
+    return v;
+
   return v / std::sqrt(v.x * v.x + v.y * v.y);
 }
 

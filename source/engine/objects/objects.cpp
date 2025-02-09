@@ -6,8 +6,10 @@
 
 void Engine::Object::ResolveCollision(const std::vector<Object*> &objects)
 {
-  for (auto &p_obj : objects)
+  for (auto &p_obj : objects) {
     p_obj->m_in_contact = false;
+    p_obj->m_on_ground  = false;
+  }
 
 
   for (size_t i = 0; i < objects.size(); ++i) {
@@ -122,6 +124,14 @@ void Engine::Object::ResolveCollision(const std::vector<Object*> &objects)
         objects[j]->SetRotationCenter(objects[j]->m_mass_center - perpendicular(objects[j]->m_v) / objects[j]->m_av);
       else
         objects[j]->SetRotationCenter(objects[j]->m_mass_center);
+
+
+      const float ground_threshold = 0.7f;
+      float up_dot = dot(collision_info.normal, { 0.f, -1.f });
+      if (up_dot > ground_threshold)
+        objects[i]->m_on_ground = true;
+      else if (up_dot < -ground_threshold)
+        objects[j]->m_on_ground = true;
     }
 
     if (objects[i]->m_in_contact)

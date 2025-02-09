@@ -70,6 +70,9 @@ public:
   bool                      Contains       (const sf::Vector2f &point)  const;
   std::vector<sf::Vector2f> GetIntersection(const Object       &object) const;
 
+  bool InContact() const { return m_in_contact; }
+  bool OnGround () const { return m_on_ground; }
+
 private:
 
   struct CollisionInfo {
@@ -94,6 +97,7 @@ private:
   float        m_mu;
 
   bool m_in_contact;
+  bool m_on_ground;
 
   bool m_enable_collision;
   bool m_enable_movement;

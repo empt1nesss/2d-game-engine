@@ -13,7 +13,12 @@ Engine::Game::Game(const Map &map, const ResourceManager &res_mgr) :
   init_player(res_mgr);
   update_view(0);
 
-  m_map.Objects.emplace_back(std::move(RectObject({ 100.f, 100.f }, { 1000.f, 1000.f })));
+  m_map.Objects.emplace_back(std::move(RectObject({ 2000.f, 100.f }, { 1000.f, 800.f })));
+  m_map.Objects[0].SetBodyColor(sf::Color::White);
+
+  m_map.Objects[0].EnableCollision(true);
+  m_map.Objects[0].SetFrictionFactor(0.6);
+
   m_map.Objects[0].DrawBody = true;
 }
 

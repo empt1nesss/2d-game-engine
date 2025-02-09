@@ -4,23 +4,23 @@
 
 
 Engine::Game::Player::Player(TextureAtlas idle, TextureAtlas run) :
-  Engine::RectObject({ 60.f, 80.f }),
+  Engine::RectObject({ 80.f, 154.f }),
   m_ms(500.f),
-  m_is_running(false),
   m_idle_anim(idle),
   m_run_anim(run)
 {
+  // SetBodyColor(sf::Color(255, 0, 0, 127));
   SetTexture(idle);
   SetSpriteScale(sf::Vector2f{ 4.f, 4.f });
-  SetSpriteOrigin({ 60.f, 60.f });
+  SetSpriteOrigin({ 54.5f, 62.f });
   SetMass(5.f);
   // SetRestitution(1.f);
 
   EnableMovement(true);
-  // EnableGravity(true);
+  EnableGravity(true);
   EnableCollision(true);
 
-  DrawBody = true;
+  // DrawBody = true;
 
   // SetSpeed({ 250.f, -50.f });
 }
@@ -33,69 +33,52 @@ Engine::Game::Player::~Player()
 
 void Engine::Game::Player::Update(uint64_t dt, const UserInput &user_input)
 {
+  static bool falling = true;
   sf::Vector2f mv = { 0.f, 0.f };
 
-  bool running = m_is_running;
-
   
-//  if (!OnGround())
-  if (false)
-    m_is_running = false;
-  else {
-    if (user_input.GetKeyState(sf::Keyboard::D) == UserInput::RELEASED) {
-      mv.x -= m_ms;
-      m_is_running = false;
-    }
-    if (user_input.GetKeyState(sf::Keyboard::A) == UserInput::RELEASED) {
-      mv.x += m_ms;
-      m_is_running = false;
-    }
-    if (user_input.GetKeyState(sf::Keyboard::S) == UserInput::RELEASED) {
-      mv.y -= m_ms;
-      m_is_running = false;
-    }
-    if (user_input.GetKeyState(sf::Keyboard::W) == UserInput::RELEASED) {
-      mv.y += m_ms;
-      m_is_running = false;
-    }
+  
+  if (!OnGround())
+  {
+    // if (!falling)
+    // // switch animation to falling anim
+    falling = true;
 
-
-    if (user_input.GetKeyState(sf::Keyboard::D) == UserInput::PRESSED) {
-      mv.x += m_ms;
-      m_is_running = true;
-    }
-    if (user_input.GetKeyState(sf::Keyboard::A) == UserInput::PRESSED) {
-      mv.x -= m_ms;
-      m_is_running = true;
-    }
-    if (user_input.GetKeyState(sf::Keyboard::S) == UserInput::PRESSED) {
-      mv.y += m_ms;
-      m_is_running = true;
-    }
-    if (user_input.GetKeyState(sf::Keyboard::W) == UserInput::PRESSED) {
-      mv.y -= m_ms;
-      m_is_running = true;
-    }
-
-    if (mv.x > m_ms)
-      mv.x = m_ms;
-    else if (mv.x < -m_ms)
-      mv.x = -m_ms;
-    if (mv.y > m_ms)
-      mv.y = m_ms;
-    else if (mv.y < -m_ms)
-      mv.y = -m_ms;
+    m_move_v = { 0.f, 0.f };
   }
+  else {
+    if (user_input.GetKeyState(sf::Keyboard::D) > 0)
+      mv.x += 1.f;
+    if (user_input.GetKeyState(sf::Keyboard::A) > 0)
+      mv.x -= 1.f;
+    if (user_input.GetKeyState(sf::Keyboard::Space) == UserInput::PRESSED)
+      mv.y = -20.f;
+    // if (user_input.GetKeyState(sf::Keyboard::S) > 0) {
+    //   mv.y += 1.f;
+    // }
+    // if (user_input.GetKeyState(sf::Keyboard::W) > 0) {
+    //   mv.y -= 1.f;
+    // }
 
+    mv = normalize(mv) * m_ms;
 
-  SetSpeed(GetSpeed() + mv);
+    if (mv.x != m_move_v.x || falling) {
+      if (mv.x == 0.f)
+        SetTexture(m_idle_anim);
+      else
+        SetTexture(m_run_anim);
 
+      if (mv.x < 0)
+        SetSpriteScale({ -4.f, 4.f});
+      else 
+        SetSpriteScale({ 4.f, 4.f});
+    }
+    falling = false;
 
-  if (m_is_running != running) {
-    if (m_is_running)
-      SetTexture(m_run_anim);
-    else
-      SetTexture(m_idle_anim);
+    if (mv != m_move_v) {
+      SetSpeed(GetSpeed() - m_move_v + mv);
+      m_move_v.x = mv.x;
+    }
   }
 
   RectObject::Update(dt);
