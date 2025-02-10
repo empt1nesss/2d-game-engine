@@ -1,7 +1,11 @@
 #include "objects.hpp"
 
-#include <cmath>
+#if defined (_WIN32)
 #include <corecrt_math_defines.h>
+#elif defined(__linux)
+#define _USE_MATH_DEFINES
+#endif 
+#include <cmath>
 
 
 void Engine::Object::ResolveCollision(const std::vector<Object*> &objects)

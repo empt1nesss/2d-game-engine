@@ -1,7 +1,11 @@
 #include "misc.hpp"
 
-#include <cmath>
+#if defined (_WIN32)
 #include <corecrt_math_defines.h>
+#elif defined(__linux)
+#define _USE_MATH_DEFINES
+#endif 
+#include <cmath>
 
 
 float dot(const sf::Vector2f &v1, const sf::Vector2f &v2)
