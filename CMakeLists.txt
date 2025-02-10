@@ -44,6 +44,11 @@ if(WIN32)
   endif()
 endif()
 
+
+add_subdirectory(lib/json-cpp)
+target_link_libraries(${PROJECT_NAME} PRIVATE json-cpp)
+
+
 file(REMOVE_RECURSE ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 if(EXISTS ${CMAKE_SOURCE_DIR}/assets)
   file(COPY ${CMAKE_SOURCE_DIR}/assets DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
