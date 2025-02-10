@@ -74,7 +74,7 @@ void Engine::Game::Player::Update(uint64_t dt, const UserInput &user_input)
 
   if (mv != m_move_v) {
     auto v = GetSpeed();
-    if (abs(v.x) < abs(m_move_v.x))
+    if (std::abs(v.x) < std::abs(m_move_v.x))
       m_move_v.x = v.x;
     else if ((v.x > 0.f) != (m_move_v.x > 0.f))
       m_move_v.x *= -1.f;
@@ -83,6 +83,13 @@ void Engine::Game::Player::Update(uint64_t dt, const UserInput &user_input)
     m_move_v.x = mv.x;
   }
 
+  const float gravity_correction = 0.1f;
+  if (!IsGravityEnabled())
+    Move({ 0.f, gravity_correction });
+
+
   RectObject::Update(dt);
+
+  EnableGravity(!OnGround());
 }
 

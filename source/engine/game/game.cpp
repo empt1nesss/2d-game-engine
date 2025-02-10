@@ -18,7 +18,7 @@ Engine::Game::Game(const Map &map, const ResourceManager &res_mgr) :
 
   m_map.Objects[0].EnableCollision(true);
   m_map.Objects[0].SetFrictionFactor(1.f);
-  // m_map.Objects[0].Rotate(0.2f, m_map.Objects[0].GetPosition());
+  m_map.Objects[0].Rotate(0.2f, m_map.Objects[0].GetPosition());
 
   m_map.Objects[0].DrawBody = true;
 
