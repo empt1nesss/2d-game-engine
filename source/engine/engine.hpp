@@ -41,6 +41,7 @@ private:
   class Object;
   class RectObject;
   class CircleObject;
+  class Light;
 
   class Game;
 

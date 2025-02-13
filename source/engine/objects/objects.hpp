@@ -73,6 +73,11 @@ public:
   bool InContact() const { return m_in_contact; }
   bool OnGround () const { return m_on_ground; }
 
+protected:
+
+  sf::VertexArray m_body;
+  AnimatedSprite  m_sprite;
+
 private:
 
   struct CollisionInfo {
@@ -83,8 +88,6 @@ private:
   };
 
 
-  sf::VertexArray m_body;
-  AnimatedSprite  m_sprite;
   sf::Vector2f    m_center;
   sf::Vector2f    m_mass_center;
   sf::Vector2f    m_rotation_center;
@@ -136,6 +139,27 @@ private:
     float    radius,
     unsigned vertex_count
   );
+
+};
+
+
+class Engine::Light : Engine::Object
+{
+public:
+  
+  Light(float radius, sf::Color color, sf::Vector2f pos={ 0.f, 0.f });
+
+  void SetColor   (sf::Color    color);
+  void SetRadius  (float        radius);
+  void SetAngle   (float        angle);
+  void SetPosition(sf::Vector2f pos);
+  void SetRotation(float        angle);
+
+  sf::Color    GetColor   () const;
+  float        GetRadius  () const;
+  float        GetAngle   () const;
+  sf::Vector2f GetPosition() const;
+  float        GetRotation() const;
 
 };
 
