@@ -13,7 +13,9 @@ Engine::Game::Game(const Map &map, const ResourceManager &res_mgr) :
   init_player(res_mgr);
   update_view(0);
 
-  m_map.Objects.emplace_back(std::move(RectObject({ 2000.f, 1000.f }, { 1000.f, 1500.f })));
+  m_map.Objects.emplace_back(std::move(
+    Object::CreateRectObj({ 2000.f, 1000.f }, { 1000.f, 1500.f })
+  ));
   m_map.Objects[0].SetBodyColor(sf::Color::White);
 
   m_map.Objects[0].EnableCollision(true);
@@ -23,7 +25,9 @@ Engine::Game::Game(const Map &map, const ResourceManager &res_mgr) :
   m_map.Objects[0].DrawBody = true;
 
 
-  m_map.Objects.emplace_back(std::move(CircleObject(50.f, { 200.f, 100.f }, 48)));
+  m_map.Objects.emplace_back(std::move(
+    Object::CreateCircleObj(50.f, { 200.f, 100.f }, 48)
+  ));
 
   m_map.Objects[1].EnableCollision(true);
   m_map.Objects[1].EnableMovement(true);
@@ -32,15 +36,23 @@ Engine::Game::Game(const Map &map, const ResourceManager &res_mgr) :
   m_map.Objects[1].SetFrictionFactor(1.f);
 
   m_map.Objects[1].DrawBody = true;
+
+  Json j;
+  j.FromProperties(m_map.Serialize());
+  j.SerializeToFile("/home/empt1nesss_/dev/cpp/2d-game-engine/assets/map1.json");
 }
 
 Engine::Game::~Game()
 {}
 
 
-void Engine::Game::Update(uint64_t dt, const UserInput &user_input)
+void Engine::Game::Update(
+  uint64_t               dt,
+  const UserInput       &user_input,
+  const ResourceManager &rm
+)
 {
-  m_player->Update(dt, user_input);
+  m_player->Update(dt, user_input, rm);
 
   std::vector<Object*> update_objects;
   for (auto &obj : m_map.Objects) {
@@ -62,7 +74,7 @@ void Engine::Game::Render(sf::RenderTarget &target)
   target.setView(m_view);
 
   for (auto &bg_obj : m_map.BgObjects)
-    target.draw(bg_obj.SfSprite);
+    bg_obj.Render(target);
 
   std::vector<Object*> render_objects { &m_player->Object() };
   for (auto &obj : m_map.Objects) {
@@ -110,23 +122,22 @@ void Engine::Game::Render(sf::RenderTarget &target)
 void Engine::Game::init_player(const ResourceManager &res_mgr)
 {
   TextureAtlas player_idle{
-    res_mgr.GetTexture("player-idle"),
+    "player-idle",
     120,
     80,
-    100.f,
     1,
     10
   };
   TextureAtlas player_running{
-    res_mgr.GetTexture("player-running"),
+    "player-running",
     120,
     80,
-    100.f,
     1,
     10
   };
-  m_player = new Player(player_idle, player_running);
+  m_player = new Player(player_idle, player_running, res_mgr);
   m_player->SetPosition(m_map.Spawnpoint);
+  m_player->Object().GetSprite().SetFrameTime(100.f);
 }
 
 void Engine::Game::update_view(uint64_t dt)
@@ -175,5 +186,5 @@ void Engine::Game::update_view(uint64_t dt)
 void Engine::Game::update_bg(const sf::Vector2f &cam_shift)
 {
   for (auto &bg_obj : m_map.BgObjects)
-    bg_obj.SfSprite.move(cam_shift * bg_obj.GetDepth());
+    bg_obj.GetSprite().move(cam_shift * bg_obj.GetDepth());
 }

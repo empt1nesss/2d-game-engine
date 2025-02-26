@@ -1,4 +1,4 @@
-#include "objects.hpp"
+#include "object.hpp"
 
 #if defined (_WIN32)
 #include <corecrt_math_defines.h>
@@ -7,6 +7,38 @@
 #endif 
 #include <cmath>
 
+
+Engine::Object Engine::Object::CreateRectObj(
+  sf::Vector2f size,
+  sf::Vector2f pos
+)
+{
+  return Object({
+    { 0.f,    0.f    },
+    { size.x, 0.f    },
+    { size.x, size.y },
+    { 0.f,    size.y }
+  }, pos);
+}
+
+Engine::Object Engine::Object::CreateCircleObj(
+  float        radius,
+  sf::Vector2f pos,
+  unsigned     vertex_count
+)
+{
+  std::vector<sf::Vector2f> circle(vertex_count);
+
+  for (unsigned v = 0; v < vertex_count; ++v) {
+    float angle = 2.f * M_PI / vertex_count * v;
+    circle[v] = {
+      (float)(sin(angle) * radius),
+      (float)(cos(angle) * radius)
+    };
+  }
+  
+  return Object(circle, pos);
+}
 
 void Engine::Object::ResolveCollision(const std::vector<Object*> &objects)
 {
@@ -394,28 +426,6 @@ void Engine::Object::Rotate(float rad, sf::Vector2f center)
   m_sprite.setOrigin(sprite_origin);
 }
 
-void Engine::Object::SetTexture(TextureAtlas texture_atlas)
-{
-  m_sprite.SwitchAnimation(texture_atlas);
-  m_sprite.setPosition(m_center);
-}
-
-void Engine::Object::SetSpriteScale(sf::Vector2f scale)
-{
-  m_sprite.setScale(scale);
-}
-
-void Engine::Object::SetSpriteOrigin(sf::Vector2f origin)
-{
-  m_sprite.setOrigin(origin);
-  m_sprite.setPosition(m_center);
-}
-
-void Engine::Object::SetSpriteRotation(float angle)
-{
-  m_sprite.setRotation(angle);
-}
-
 void Engine::Object::SetBodyColor(sf::Color color)
 {
   for (size_t i = 0; i < m_body.getVertexCount(); ++i) {
@@ -525,6 +535,32 @@ bool Engine::Object::Contains(const sf::Vector2f &point) const
   }
   
   return inside;
+}
+
+Json::Value Engine::Object::Serialize() const
+{
+  return {
+    Json::Property
+    { "z-index", ZIndex },
+    { "draw_body", DrawBody },
+    { "body", serialize_body() },
+    { "sprite", m_sprite.Serialize() },
+    { "center", serialize_vector(m_center) },
+    { "mass_center", serialize_vector(m_mass_center) },
+    { "rotation_center", serialize_vector(m_rotation_center) },
+    { "v", serialize_vector(m_v) },
+    { "av", m_av },
+    { "m", m_m },
+    { "e", m_e },
+    { "I", m_I },
+    { "mu", m_mu },
+    { "in_contact", m_in_contact },
+    { "on_ground", m_on_ground },
+    { "collision", m_enable_collision },
+    { "movement", m_enable_movement },
+    { "gravity", m_enable_gravity },
+    { "rotation", m_enable_rotation }
+  };
 }
 
 
@@ -669,41 +705,15 @@ void Engine::Object::update_inertia()
   m_I = std::fabs((m_m / (6.f * abs_area)) * I_sum);
 }
 
-
-
-
-Engine::RectObject::RectObject(sf::Vector2f size, sf::Vector2f pos) :
-  Object({
-    { 0.f,    0.f    },
-    { size.x, 0.f    },
-    { size.x, size.y },
-    { 0.f,    size.y }
-  }, pos)
-{}
-
-
-
-
-Engine::CircleObject::CircleObject(float radius, sf::Vector2f pos, unsigned vertex_count) :
-  Object(create_circle(radius, vertex_count), pos)
-{}
-
-
-
-std::vector<sf::Vector2f> Engine::CircleObject::create_circle(
-  float radius, unsigned vertex_count
-)
+Json::ListType Engine::Object::serialize_body() const
 {
-  std::vector<sf::Vector2f> res(vertex_count);
-
-  for (unsigned v = 0; v < vertex_count; ++v) {
-    float angle = 2.f * M_PI / vertex_count * v;
-    res[v] = {
-      (float)(sin(angle) * radius),
-      (float)(cos(angle) * radius)
-    };
+  Json::ListType out;
+  for (size_t i = 0; i < m_body.getVertexCount(); ++i) {
+    out.push_back({
+      Json::Property{ "coords", serialize_vector(m_body[i].position) },
+      Json::Property{ "color",  serialize_color(m_body[i].color) }
+    });
   }
-
-  return res;
+  return out;
 }
 

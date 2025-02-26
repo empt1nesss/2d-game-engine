@@ -3,16 +3,20 @@
 #include <cmath>
 
 
-Engine::Game::Player::Player(TextureAtlas idle, TextureAtlas run) :
-  Engine::RectObject({ 80.f, 154.f }),
+Engine::Game::Player::Player(
+  TextureAtlas           idle,
+  TextureAtlas           run,
+  const ResourceManager &rm
+) :
+  Engine::Object(std::move(Object::CreateRectObj({ 80.f, 154.f }))),
   m_ms(500.f),
   m_idle_anim(idle),
   m_run_anim(run)
 {
   // SetBodyColor(sf::Color(255, 0, 0, 127));
-  SetTexture(idle);
-  SetSpriteScale(sf::Vector2f{ 4.f, 4.f });
-  SetSpriteOrigin({ 54.5f, 62.f });
+  GetSprite().SwitchAnimation(idle, rm);
+  GetSprite().setScale(sf::Vector2f{ 4.f, 4.f });
+  GetSprite().setOrigin({ 54.5f, 62.f });
   SetMass(60.f);
   SetRestitutionFactor(0.f);
   SetFrictionFactor(1.f);
@@ -35,7 +39,11 @@ Engine::Game::Player::~Player()
 }
 
 
-void Engine::Game::Player::Update(uint64_t dt, const UserInput &user_input)
+void Engine::Game::Player::Update(
+  uint64_t               dt,
+  const UserInput       &user_input,
+  const ResourceManager &rm
+)
 {
   static bool falling = true;
   sf::Vector2f mv = { 0.f, 0.f };
@@ -58,17 +66,17 @@ void Engine::Game::Player::Update(uint64_t dt, const UserInput &user_input)
   if (mv.x != m_move_v.x || falling) {
     if (mv.x == 0.f) {
       SetFrictionFactor(1.f);
-      SetTexture(m_idle_anim);
+      GetSprite().SwitchAnimation(m_idle_anim, rm);
     }
     else {
       SetFrictionFactor(0.f);
-      SetTexture(m_run_anim);
+      GetSprite().SwitchAnimation(m_run_anim, rm);
     }
 
     if (mv.x < 0)
-      SetSpriteScale({ -4.f, 4.f});
+      GetSprite().setScale({ -4.f, 4.f});
     else 
-      SetSpriteScale({ 4.f, 4.f});
+      GetSprite().setScale({ 4.f, 4.f});
   }
   falling = false;
 
@@ -88,7 +96,7 @@ void Engine::Game::Player::Update(uint64_t dt, const UserInput &user_input)
     Move({ 0.f, gravity_correction });
 
 
-  RectObject::Update(dt);
+  Object::Update(dt);
 
   EnableGravity(!OnGround());
 }

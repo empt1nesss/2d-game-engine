@@ -46,3 +46,19 @@ float rad(float deg)
   return deg * M_PI / 180.f;
 }
 
+
+Json::Value serialize_vector(const sf::Vector2f &v)
+{
+  return { v.x, v.y };
+}
+
+Json::Value serialize_color(const sf::Color &c)
+{
+  return {
+    c.r,
+    c.g,
+    c.b,
+    c.a
+  };
+}
+

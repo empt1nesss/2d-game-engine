@@ -3,55 +3,62 @@
 
 
 #include <SFML/Graphics.hpp>
+#include <json.hpp>
 
 #include "misc/misc.hpp"
+#include "system/resource-manager.hpp"
 
 
 class AnimatedSprite : public sf::Sprite
 {
 public:
-
-  struct Frame
-  {
-    sf::IntRect  rect;
-    float        duration;  // milliseconds
-    sf::Texture *texture;
-  };
-
   
   bool Pause;
 
 
   AnimatedSprite();
-  AnimatedSprite(const sf::Texture &texture, std::vector<Frame> frames={});
-  AnimatedSprite(TextureAtlas texture_atlas);
+  AnimatedSprite(
+    TextureAtlas           texture_atlas,
+    const ResourceManager &rm,
+    float                  frame_time   =0.f
+  );
 
   ~AnimatedSprite() = default;
 
 
-  void Update(uint64_t dt);
-
-  void AddFrame   (const Frame              &frame);
-  void AddFrames  (const std::vector<Frame> &frames);
-  void ClearFrames();
-
-  void SwitchAnimation(TextureAtlas texture_atlas);
+  void Update         (uint64_t dt);
+  void SwitchAnimation(
+    TextureAtlas texture_atlas, const ResourceManager &rm
+  );
 
   void ResetTime();
+
+  float GetFrameTime() const { return m_frame_time; }
+
+  bool SetFrameTime(float t)
+  {
+    if (t < 0.f)
+      return false;
+
+    m_frame_time = t;
+    return true;
+  }
 
   void setOrigin(const sf::Vector2f &val);
   void rotate   (float angle);
 
-
-  // AnimatedSprite(const AnimatedSprite&) = delete;
+  Json::StructType Serialize() const;
 
 private:
 
-  std::vector<Frame> m_frames;
-  uint64_t           m_cur_frame;
-  float              m_frame_time;
-  sf::Vector2f       m_origin;
-  float              m_rotation;
+  std::string              m_texture_alias;
+  std::vector<sf::IntRect> m_frames;
+  sf::IntRect              m_atlas_rect;
+  uint64_t                 m_cur_frame;
+  float                    m_frame_time;
+  float                    m_time;
+  sf::Vector2f             m_origin;
+  float                    m_rotation;
 
 };
 

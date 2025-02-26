@@ -6,6 +6,8 @@
 // not for play time
 
 
+#include <json.hpp>
+
 #include "engine.hpp"
 #include "objects/objects.hpp"
 
@@ -16,36 +18,10 @@ struct Engine::Map
 {
 public:
 
-  struct BgObject
-  {
-    mutable sf::Sprite SfSprite;
-
-    BgObject(sf::Texture &text, float depth) :
-      SfSprite(text), m_depth(depth)
-    {}
-
-    void SetDepth(float depth)
-    {
-      if (depth > 1.f)
-        m_depth = 1.f;
-      else if (depth < 0.f)
-        m_depth = 0.f;
-      else
-        m_depth = depth;
-    };
-    float GetDepth() const { return m_depth; }
-
-
-    bool operator<(const BgObject &bg_obj) const
-    {
-      return m_depth < bg_obj.m_depth;
-    }
-
-  private:
-
-    float m_depth;
-
-  };
+  sf::Vector2f          Size;
+  std::vector<BgObject> BgObjects;
+  std::vector<Object>   Objects;
+  sf::Vector2f          Spawnpoint;
 
 
   Map() = default;
@@ -53,10 +29,8 @@ public:
     const std::string &path
   );
 
-  sf::Vector2f            Size;
-  std::multiset<BgObject> BgObjects;
-  std::vector<Object>     Objects;
-  sf::Vector2f            Spawnpoint;
+
+  Json::StructType Serialize() const;
 
 };
 

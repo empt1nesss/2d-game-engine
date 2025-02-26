@@ -28,7 +28,7 @@ void Engine::Update(uint64_t dt)
 {
   poll_window_events();
   
-  m_game->Update(dt, m_user_input);
+  m_game->Update(dt, m_user_input, m_resource_manager);
 }
 
 void Engine::Render()
@@ -67,7 +67,16 @@ void Engine::init_game()
   Map map;
   map.Size = { 4000, 2000 };
   map.Spawnpoint = { 100, 500 };
-  map.BgObjects.emplace(std::move(Map::BgObject(*m_resource_manager.GetTexture("bg"), 0.5f)));
+
+  map.BgObjects.emplace_back(
+    std::move(
+      Engine::BgObject(
+        { "bg" },
+        m_resource_manager,
+        0.5f
+      )
+    )
+  );
 
   m_game = new Game(map, m_resource_manager);
 }
