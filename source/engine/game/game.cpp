@@ -13,12 +13,12 @@ Engine::Game::Game(const Map &map, const ResourceManager &res_mgr) :
   init_player(res_mgr);
   update_view(0);
 
-  m_map.Objects.emplace_back(std::move(RectObject({ 2000.f, 1000.f }, { 1000.f, 1500.f })));
+  m_map.Objects.emplace_back(std::move(RectObject({ 2000.f, 1000.f }, { 1000.f, 1300.f })));
   m_map.Objects[0].SetBodyColor(sf::Color::White);
 
   m_map.Objects[0].EnableCollision(true);
   m_map.Objects[0].SetFrictionFactor(1.f);
-  m_map.Objects[0].Rotate(0.2f, m_map.Objects[0].GetPosition());
+  //m_map.Objects[0].Rotate(0.2f, m_map.Objects[0].GetPosition());
 
   m_map.Objects[0].DrawBody = true;
 
@@ -32,6 +32,17 @@ Engine::Game::Game(const Map &map, const ResourceManager &res_mgr) :
   m_map.Objects[1].SetFrictionFactor(1.f);
 
   m_map.Objects[1].DrawBody = true;
+
+  Light ball = Light(100.f, sf::Color(0,0,255,100), {800.f, 600.f}, 12);
+  ball.SetRadius(150.f, 36);
+  ball.SetColor(sf::Color::Yellow);
+  ball.CenterBrightnessLevel(150);
+  ball.SetAngle(M_PI / 2.f);
+  ball.SetRotation(M_PI / 2.f);
+
+  m_map.Objects.emplace_back(std::move(ball.Object()));
+
+  m_map.Objects[2].DrawBody = true;
 }
 
 Engine::Game::~Game()
