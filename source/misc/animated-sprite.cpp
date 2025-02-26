@@ -19,7 +19,20 @@ AnimatedSprite::AnimatedSprite(
   m_frame_time(frame_time)
 {
   SwitchAnimation(texture_atlas, rm);
-  Sprite::setTextureRect(m_frames[0]);
+}
+
+AnimatedSprite::AnimatedSprite(
+  const Json::Value     &val,
+  const ResourceManager &rm
+) :
+  Pause(false),
+  m_frames(
+    val["texture_atlas"]["rows"].GetInt() *
+    val["texture_atlas"]["cols"].GetInt()
+  ),
+  m_frame_time(val["frame_time"].GetFloat())
+{
+  SwitchAnimation(TextureAtlas().Deserialize(val["texture_atlas"]), rm);
 }
 
 
@@ -54,7 +67,7 @@ void AnimatedSprite::SwitchAnimation(
   TextureAtlas texture_atlas, const ResourceManager &rm
 )
 {
-  m_texture_alias = texture_atlas.texture_alias;
+  m_texture_atlas = texture_atlas;
 
   m_atlas_rect.width  = texture_atlas.frame_width  * texture_atlas.cols;
   m_atlas_rect.height = texture_atlas.frame_height * texture_atlas.rows;
@@ -109,7 +122,7 @@ void AnimatedSprite::rotate(float angle)
 Json::StructType AnimatedSprite::Serialize() const
 {
   return {
-    { "texture_alias", m_texture_alias },
+    { "texture_atlas", m_texture_atlas.Serialize() },
     { "frame_time",    m_frame_time },
     { "origin",        serialize_vector(m_origin) },
     { "rotation",      m_rotation }

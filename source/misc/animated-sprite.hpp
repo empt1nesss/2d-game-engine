@@ -22,6 +22,10 @@ public:
     const ResourceManager &rm,
     float                  frame_time   =0.f
   );
+  AnimatedSprite(
+    const Json::Value     &val,
+    const ResourceManager &rm
+  );
 
   ~AnimatedSprite() = default;
 
@@ -51,7 +55,7 @@ public:
 
 private:
 
-  std::string              m_texture_alias;
+  TextureAtlas             m_texture_atlas;
   std::vector<sf::IntRect> m_frames;
   sf::IntRect              m_atlas_rect;
   uint64_t                 m_cur_frame;

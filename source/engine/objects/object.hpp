@@ -31,6 +31,10 @@ public:
     const std::vector<sf::Vector2f> &vertices,
     sf::Vector2f                     pos     ={ 0.f, 0.f }
   );
+  explicit Object(
+    const Json::Value     &val,
+    const ResourceManager &rm
+  );
   virtual ~Object() = default;
 
 

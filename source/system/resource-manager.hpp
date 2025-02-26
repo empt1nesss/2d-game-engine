@@ -16,11 +16,14 @@ public:
 
 
   bool         LoadTexture(const std::string &name, const std::string fileformat="png");
-  sf::Texture* GetTexture (const std::string &name) const;
+
+  const sf::Texture* GetTexture(const std::string &name) const;
+  std::string        GetMapPath(const std::string &name) const;
   
 private:
 
-  mutable std::map<std::string, sf::Texture> m_textures;
+  sf::Texture                        m_default_texture;
+  std::map<std::string, sf::Texture> m_textures;
 
 };
 

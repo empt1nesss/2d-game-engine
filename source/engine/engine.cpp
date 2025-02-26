@@ -65,18 +65,7 @@ void Engine::init_game()
     delete m_game;
 
   Map map;
-  map.Size = { 4000, 2000 };
-  map.Spawnpoint = { 100, 500 };
-
-  map.BgObjects.emplace_back(
-    std::move(
-      Engine::BgObject(
-        { "bg" },
-        m_resource_manager,
-        0.5f
-      )
-    )
-  );
+  map.Load("map1", m_resource_manager);
 
   m_game = new Game(map, m_resource_manager);
 }

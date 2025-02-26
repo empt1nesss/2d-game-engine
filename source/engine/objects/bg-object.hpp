@@ -15,6 +15,10 @@ public:
     float            depth         =0.f,
     sf::Vector2f     pos           ={ 0.f, 0.f }
   );
+  BgObject(
+    const Json::Value     &val,
+    const ResourceManager &rm
+  );
   
 
   void Update(uint64_t          dt);
@@ -35,7 +39,7 @@ public:
   AnimatedSprite&       GetSprite()       { return Object::GetSprite(); }
   const AnimatedSprite& GetSprite() const { return Object::GetSprite(); }
 
-  Json::StructType Serialize() const;
+  Json::Value Serialize() const;
 
 private:
 

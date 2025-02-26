@@ -25,12 +25,13 @@ public:
 
 
   Map() = default;
-  Map(
-    const std::string &path
-  );
-
 
   Json::StructType Serialize() const;
+
+  Map& Load(
+    const std::string     &map_alias,
+    const ResourceManager &rm
+  );
 
 };
 

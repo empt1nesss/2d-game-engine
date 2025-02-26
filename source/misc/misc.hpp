@@ -15,6 +15,10 @@ struct TextureAtlas
   unsigned     cols          = 0;
   unsigned     offset_x      = 0;
   unsigned     offset_y      = 0;
+
+  Json::Value Serialize() const;
+  
+  TextureAtlas& Deserialize(const Json::Value &val);
 };
 
 
@@ -26,8 +30,11 @@ float        length       (const sf::Vector2f &v);
 float        deg          (float               rad);
 float        rad          (float               deg);
 
-Json::Value serialize_vector(const sf::Vector2f &v);
-Json::Value serialize_color (const sf::Color &c);
+Json::Value  serialize_vector  (const sf::Vector2f &v);
+Json::Value  serialize_color   (const sf::Color    &c);
+
+sf::Vector2f deserialize_vector(const Json::Value  &val);
+sf::Color    deserialize_color (const Json::Value  &val);
 
 
 #endif // !MISC_MISC_HPP

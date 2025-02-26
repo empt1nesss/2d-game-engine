@@ -15,6 +15,14 @@ Engine::BgObject::BgObject(
   EnableRotation(true);
 }
 
+Engine::BgObject::BgObject(
+  const Json::Value     &val,
+  const ResourceManager &rm
+) :
+  Object(val, rm),
+  m_depth(val["depth"].GetFloat())
+{}
+
 
 void Engine::BgObject::Update(uint64_t dt)
 {
@@ -36,12 +44,11 @@ void Engine::BgObject::SetDepth(float depth)
     m_depth = depth;
 }
 
-Json::StructType Engine::BgObject::Serialize() const
+Json::Value Engine::BgObject::Serialize() const
 {
-  return {
-    { "sprite", Object::GetSprite().Serialize() },
-    { "depth",  m_depth }
-  };
+  auto res = Object::Serialize();
+  res["depth"] = m_depth;
+  return res;
 }
 
 

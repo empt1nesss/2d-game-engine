@@ -231,6 +231,38 @@ Engine::Object::Object(const std::vector<sf::Vector2f> &vertices, sf::Vector2f p
   SetPosition(pos);
 }
 
+Engine::Object::Object(
+  const Json::Value     &val,
+  const ResourceManager &rm
+) :
+  ZIndex(val["z-index"].GetInt()),
+  DrawBody(val["draw_body"].GetBool()),
+  m_sprite(val["sprite"], rm),
+  m_center(deserialize_vector(val["center"])),
+  m_mass_center(deserialize_vector(val["mass_center"])),
+  m_rotation_center(deserialize_vector(val["rotation_center"])),
+  m_v(deserialize_vector(val["v"])),
+  m_av(val["av"].GetFloat()),
+  m_m(val["m"].GetFloat()),
+  m_e(val["e"].GetFloat()),
+  m_I(val["I"].GetFloat()),
+  m_mu(val["mu"].GetFloat()),
+  m_in_contact(val["in_contact"].GetBool()),
+  m_on_ground(val["on_ground"].GetBool()),
+  m_enable_collision(val["collision"].GetBool()),
+  m_enable_movement(val["movement"].GetBool()),
+  m_enable_gravity(val["gravity"].GetBool()),
+  m_enable_rotation(val["rotation"].GetBool())
+{
+  for (auto &v : val["body"].GetList()) {
+    m_body.append({
+      deserialize_vector(v["coords"]),
+      deserialize_color(v["color"])
+    });
+  }
+  m_body.setPrimitiveType(sf::TriangleFan);
+}
+
 
 void Engine::Object::Update(uint64_t dt)
 {
