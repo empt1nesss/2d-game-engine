@@ -717,8 +717,7 @@ Engine::Light::Light(float radius, sf::Color color, sf::Vector2f pos, unsigned v
   m_color                   (color),
   m_pos                     (pos),
   m_vertex_count            (vertex_count),
-  m_brightness_level        (0),
-  m_center_brightness_level (255),
+  m_brightness_level        (m_color.a),
   m_angle                   (2 * M_PI),
   m_rotation                (0.0f)
 {
@@ -806,24 +805,15 @@ void Engine::Light::SetRotation (float angle)
 }
 
 
-void Engine::Light::SideBrightnessLevel(uint8_t brightness_level)
+void Engine::Light::SetBrightnessLevel(uint8_t brightness_level)
 {
   if (m_brightness_level == brightness_level)
     return;
 
   m_brightness_level = brightness_level;
+  m_color.a = m_brightness_level;
   create_gradient();
 }
-
-void Engine::Light::CenterBrightnessLevel (uint8_t brightness_level)
-{
-  if (m_center_brightness_level == brightness_level)
-    return;
-
-  m_center_brightness_level = brightness_level;
-  create_gradient();
-}
-
 
 
 void Engine::Light::create_gradient()
@@ -831,9 +821,9 @@ void Engine::Light::create_gradient()
   for(int it = 0; it < m_vertex_count; ++it)
   {
     if (m_body[it].position == m_pos)
-      m_body[it].color = {m_color.r, m_color.g, m_color.b, m_center_brightness_level};
+      m_body[it].color = m_color;
     else
-      m_body[it].color = {m_color.r, m_color.g, m_color.b, m_brightness_level};
+      m_body[it].color = {m_color.r, m_color.g, m_color.b, 0};
   }
 }
 

@@ -36,7 +36,7 @@ Engine::Game::Game(const Map &map, const ResourceManager &res_mgr) :
   Light ball = Light(100.f, sf::Color(0,0,255,100), {800.f, 600.f}, 12);
   ball.SetRadius(150.f, 36);
   ball.SetColor(sf::Color::Yellow);
-  ball.CenterBrightnessLevel(150);
+  ball.SetBrightnessLevel(150);
   ball.SetAngle(M_PI / 2.f);
   ball.SetRotation(M_PI / 2.f);
 
