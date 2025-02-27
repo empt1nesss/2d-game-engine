@@ -30,6 +30,18 @@ Json::StructType Engine::Map::Serialize() const
           }
         )
       )
+    },
+    {
+      "runtime-objects",
+      Json::Value(
+        RuntimeObjects.begin(), RuntimeObjects.end(),
+        std::function<Json::Property(const std::pair<std::string, Object>&)>(
+          [](const std::pair<std::string, Object> &obj)
+          {
+            return Json::Property(obj.first, obj.second.Serialize());
+          }
+        )
+      )
     }
   };
 }
@@ -51,6 +63,13 @@ Engine::Map& Engine::Map::Load(
   
   for (auto &bg_obj : j.GetData()["bg-objects"].GetList()) {
     BgObjects.emplace_back(std::move(BgObject(bg_obj, rm)));
+  }
+
+  for (auto &bg_obj : j.GetData()["runtime-objects"].GetStruct()) {
+    RuntimeObjects.emplace(
+      bg_obj.GetName(),
+      std::move(Object(bg_obj.GetValue(), rm))
+    );
   }
 
   return *this;

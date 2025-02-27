@@ -12,34 +12,6 @@ Engine::Game::Game(const Map &map, const ResourceManager &res_mgr) :
 
   init_player(res_mgr);
   update_view(0);
-
-  // m_map.Objects.emplace_back(std::move(
-  //   Object::CreateRectObj({ 2000.f, 1000.f }, { 1000.f, 1500.f })
-  // ));
-  // m_map.Objects[0].SetBodyColor(sf::Color::White);
-  // 
-  // m_map.Objects[0].EnableCollision(true);
-  // m_map.Objects[0].SetFrictionFactor(1.f);
-  // m_map.Objects[0].Rotate(0.2f, m_map.Objects[0].GetPosition());
-  // 
-  // m_map.Objects[0].DrawBody = true;
-  // 
-  // 
-  // m_map.Objects.emplace_back(std::move(
-  //   Object::CreateCircleObj(50.f, { 200.f, 100.f }, 48)
-  // ));
-  // 
-  // m_map.Objects[1].EnableCollision(true);
-  // m_map.Objects[1].EnableMovement(true);
-  // m_map.Objects[1].EnableGravity(true);
-  // m_map.Objects[1].EnableRotation(true);
-  // m_map.Objects[1].SetFrictionFactor(1.f);
-  // 
-  // m_map.Objects[1].DrawBody = true;
-  // 
-  // Json j;
-  // j.FromProperties(m_map.Serialize());
-  // j.SerializeToFile("/home/empt1nesss_/dev/cpp/2d-game-engine/assets/map1.map");
 }
 
 Engine::Game::~Game()

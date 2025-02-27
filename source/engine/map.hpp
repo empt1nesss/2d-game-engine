@@ -18,10 +18,11 @@ struct Engine::Map
 {
 public:
 
-  sf::Vector2f          Size;
-  std::vector<BgObject> BgObjects;
-  std::vector<Object>   Objects;
-  sf::Vector2f          Spawnpoint;
+  sf::Vector2f                  Size;
+  sf::Vector2f                  Spawnpoint;
+  std::vector<Object>           Objects;
+  std::vector<BgObject>         BgObjects;
+  std::map<std::string, Object> RuntimeObjects;
 
 
   Map() = default;
