@@ -18,7 +18,11 @@ public:
   ~Game();
 
 
-  void Update(uint64_t dt, const UserInput &user_input);
+  void Update(
+    uint64_t               dt,
+    const UserInput       &user_input,
+    const ResourceManager &rm
+  );
   void Render(sf::RenderTarget &target);
 
 private:

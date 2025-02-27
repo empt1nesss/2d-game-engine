@@ -4,107 +4,96 @@
 AnimatedSprite::AnimatedSprite() :
   Pause       (false),
   m_cur_frame (0),
-  m_frame_time(0.f),
-  m_rotation  (0.f)
+  m_time      (0.f),
+  m_rotation  (0.f),
+  m_frame_time(0.f)
 {}
 
-AnimatedSprite::AnimatedSprite(const sf::Texture &texture, std::vector<Frame> frames) :
-  sf::Sprite(texture),
-  Pause(false),
-  m_frames(frames), m_cur_frame(0), m_frame_time(0.f)
+AnimatedSprite::AnimatedSprite(
+  TextureAtlas           texture_atlas,
+  const ResourceManager &rm,
+  float                  frame_time
+) :
+  Pause       (false),
+  m_frames    (texture_atlas.rows * texture_atlas.cols),
+  m_frame_time(frame_time)
 {
-  if (!m_frames.empty()) {
-    Sprite::setTextureRect(m_frames[0].rect);
-    m_origin = Sprite::getOrigin();
-  }
+  SwitchAnimation(texture_atlas, rm);
 }
 
-AnimatedSprite::AnimatedSprite(TextureAtlas texture_atlas) :
+AnimatedSprite::AnimatedSprite(
+  const Json::Value     &val,
+  const ResourceManager &rm
+) :
   Pause(false),
-  m_frames(texture_atlas.rows * texture_atlas.cols)
+  m_frames(
+    val["texture_atlas"]["rows"].GetInt() *
+    val["texture_atlas"]["cols"].GetInt()
+  ),
+  m_frame_time(val["frame_time"].GetFloat())
 {
-  SwitchAnimation(texture_atlas);
-  Sprite::setTextureRect(m_frames[0].rect);
+  SwitchAnimation(TextureAtlas().Deserialize(val["texture_atlas"]), rm);
 }
 
 
 void AnimatedSprite::Update(uint64_t dt)
 {
-  if (Pause)
+  if (Pause || m_frame_time == 0.f)
     return;
 
   if (m_frames.empty())
     return;
 
-  m_frame_time += (dt * 1e-6);
-  while (m_frame_time >= m_frames[m_cur_frame].duration) {
-    m_frame_time -= m_frames[m_cur_frame].duration;
-    auto last_text_ptr = m_frames[m_cur_frame].texture;
+  m_time += (dt * 1e-6);
+  while (m_time >= m_frame_time) {
+    m_time -= m_frame_time;
 
     ++m_cur_frame;
     if (m_cur_frame == m_frames.size())
       m_cur_frame = 0;
 
-    if (m_frames[m_cur_frame].texture != last_text_ptr)
-      Sprite::setTexture(*m_frames[m_cur_frame].texture);
-
-    Sprite::setTextureRect(m_frames[m_cur_frame].rect);
+    if (m_frames[m_cur_frame].width != 0 && m_frames[m_cur_frame].height != 0) {
+      Sprite::setTextureRect(m_frames[m_cur_frame]);
+    }
+    else {
+      Sprite::setTextureRect(m_atlas_rect);
+    }
     Sprite::setOrigin(m_origin);
     Sprite::setRotation(deg(m_rotation));
   }
 }
 
-void AnimatedSprite::AddFrame(const Frame &frame)
+void AnimatedSprite::SwitchAnimation(
+  TextureAtlas texture_atlas, const ResourceManager &rm
+)
 {
-  m_frames.push_back(frame);
-  if (m_frames.size() == 1) {
-    Sprite::setTextureRect(m_frames[0].rect);
-    m_origin = Sprite::getOrigin();
-  }
-}
+  m_texture_atlas = texture_atlas;
 
-void AnimatedSprite::AddFrames(const std::vector<Frame> &frames)
-{
-  uint64_t i = m_frames.size();
-  m_frames.resize(i + frames.size());
+  m_atlas_rect.width  = texture_atlas.frame_width  * texture_atlas.cols;
+  m_atlas_rect.height = texture_atlas.frame_height * texture_atlas.rows;
+  m_atlas_rect.left   = texture_atlas.offset_x;
+  m_atlas_rect.top    = texture_atlas.offset_y;
 
-  for (uint64_t k = 0; k < frames.size(); ++k) {
-    m_frames[k + i] = frames[k];
-  }
-
-  if (i == 0 && !frames.empty()) {
-    Sprite::setTextureRect(m_frames[0].rect);
-    m_origin = Sprite::getOrigin();
-  }
-}
-
-void AnimatedSprite::ClearFrames()
-{
-  m_frames.clear();
-  ResetTime();
-}
-
-void AnimatedSprite::SwitchAnimation(TextureAtlas texture_atlas)
-{
   m_frames.resize(texture_atlas.cols * texture_atlas.rows);
-  sf::Sprite::setTexture(*texture_atlas.texture);
+  sf::Sprite::setTexture(*rm.GetTexture(texture_atlas.texture_alias));
   m_origin = Sprite::getOrigin();
   for (unsigned row = 0; row < texture_atlas.rows; ++row) {
     for (unsigned col = 0; col < texture_atlas.cols; ++col) {
       m_frames[row * texture_atlas.cols + col] = {
-        {
-          (int)(texture_atlas.frame_width * col + texture_atlas.offset_x),
-          (int)(texture_atlas.frame_height * row + texture_atlas.offset_y),
-          (int)texture_atlas.frame_width,
-          (int)texture_atlas.frame_height
-        },
-        texture_atlas.frame_time,
-        texture_atlas.texture
+        (int)(texture_atlas.frame_width * col + texture_atlas.offset_x),
+        (int)(texture_atlas.frame_height * row + texture_atlas.offset_y),
+        (int)texture_atlas.frame_width,
+        (int)texture_atlas.frame_height
       };
     } 
   }
   if (!m_frames.empty()) {
-    Sprite::setTextureRect(m_frames[0].rect);
+    if (m_frames[0].width != 0 && m_frames[0].height != 0) {
+      Sprite::setTextureRect(m_frames[0]);
+    }
+    else {
+      Sprite::setTextureRect(m_atlas_rect);
+    }
   }
 
   sf::Sprite::setRotation(deg(m_rotation));
@@ -114,7 +103,7 @@ void AnimatedSprite::SwitchAnimation(TextureAtlas texture_atlas)
 
 void AnimatedSprite::ResetTime()
 {
-  m_frame_time = 0.f;
+  m_time = 0.f;
   m_cur_frame  = 0;
 }
 
@@ -129,3 +118,14 @@ void AnimatedSprite::rotate(float angle)
   m_rotation += angle;
   sf::Sprite::setRotation(deg(m_rotation));
 }
+
+Json::StructType AnimatedSprite::Serialize() const
+{
+  return {
+    { "texture_atlas", m_texture_atlas.Serialize() },
+    { "frame_time",    m_frame_time },
+    { "origin",        serialize_vector(m_origin) },
+    { "rotation",      m_rotation }
+  };
+}
+

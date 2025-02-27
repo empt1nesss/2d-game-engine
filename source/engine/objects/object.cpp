@@ -1,6 +1,4 @@
-#include "objects.hpp"
-#include "SFML/Graphics/Color.hpp"
-#include "engine/engine.hpp"
+#include "object.hpp"
 
 #if defined (_WIN32)
 #include <corecrt_math_defines.h>
@@ -9,6 +7,38 @@
 #endif 
 #include <cmath>
 
+
+Engine::Object Engine::Object::CreateRectObj(
+  sf::Vector2f size,
+  sf::Vector2f pos
+)
+{
+  return Object({
+    { 0.f,    0.f    },
+    { size.x, 0.f    },
+    { size.x, size.y },
+    { 0.f,    size.y }
+  }, pos);
+}
+
+Engine::Object Engine::Object::CreateCircleObj(
+  float        radius,
+  sf::Vector2f pos,
+  unsigned     vertex_count
+)
+{
+  std::vector<sf::Vector2f> circle(vertex_count);
+
+  for (unsigned v = 0; v < vertex_count; ++v) {
+    float angle = 2.f * M_PI / vertex_count * v;
+    circle[v] = {
+      (float)(sin(angle) * radius),
+      (float)(cos(angle) * radius)
+    };
+  }
+  
+  return Object(circle, pos);
+}
 
 void Engine::Object::ResolveCollision(const std::vector<Object*> &objects)
 {
@@ -199,6 +229,38 @@ Engine::Object::Object(const std::vector<sf::Vector2f> &vertices, sf::Vector2f p
   m_rotation_center = m_mass_center;
 
   SetPosition(pos);
+}
+
+Engine::Object::Object(
+  const Json::Value     &val,
+  const ResourceManager &rm
+) :
+  ZIndex(val["z-index"].GetInt()),
+  DrawBody(val["draw_body"].GetBool()),
+  m_sprite(val["sprite"], rm),
+  m_center(deserialize_vector(val["center"])),
+  m_mass_center(deserialize_vector(val["mass_center"])),
+  m_rotation_center(deserialize_vector(val["rotation_center"])),
+  m_v(deserialize_vector(val["v"])),
+  m_av(val["av"].GetFloat()),
+  m_m(val["m"].GetFloat()),
+  m_e(val["e"].GetFloat()),
+  m_I(val["I"].GetFloat()),
+  m_mu(val["mu"].GetFloat()),
+  m_in_contact(val["in_contact"].GetBool()),
+  m_on_ground(val["on_ground"].GetBool()),
+  m_enable_collision(val["collision"].GetBool()),
+  m_enable_movement(val["movement"].GetBool()),
+  m_enable_gravity(val["gravity"].GetBool()),
+  m_enable_rotation(val["rotation"].GetBool())
+{
+  for (auto &v : val["body"].GetList()) {
+    m_body.append({
+      deserialize_vector(v["coords"]),
+      deserialize_color(v["color"])
+    });
+  }
+  m_body.setPrimitiveType(sf::TriangleFan);
 }
 
 
@@ -396,28 +458,6 @@ void Engine::Object::Rotate(float rad, sf::Vector2f center)
   m_sprite.setOrigin(sprite_origin);
 }
 
-void Engine::Object::SetTexture(TextureAtlas texture_atlas)
-{
-  m_sprite.SwitchAnimation(texture_atlas);
-  m_sprite.setPosition(m_center);
-}
-
-void Engine::Object::SetSpriteScale(sf::Vector2f scale)
-{
-  m_sprite.setScale(scale);
-}
-
-void Engine::Object::SetSpriteOrigin(sf::Vector2f origin)
-{
-  m_sprite.setOrigin(origin);
-  m_sprite.setPosition(m_center);
-}
-
-void Engine::Object::SetSpriteRotation(float angle)
-{
-  m_sprite.setRotation(angle);
-}
-
 void Engine::Object::SetBodyColor(sf::Color color)
 {
   for (size_t i = 0; i < m_body.getVertexCount(); ++i) {
@@ -527,6 +567,32 @@ bool Engine::Object::Contains(const sf::Vector2f &point) const
   }
   
   return inside;
+}
+
+Json::Value Engine::Object::Serialize() const
+{
+  return {
+    Json::Property
+    { "z-index", ZIndex },
+    { "draw_body", DrawBody },
+    { "body", serialize_body() },
+    { "sprite", m_sprite.Serialize() },
+    { "center", serialize_vector(m_center) },
+    { "mass_center", serialize_vector(m_mass_center) },
+    { "rotation_center", serialize_vector(m_rotation_center) },
+    { "v", serialize_vector(m_v) },
+    { "av", m_av },
+    { "m", m_m },
+    { "e", m_e },
+    { "I", m_I },
+    { "mu", m_mu },
+    { "in_contact", m_in_contact },
+    { "on_ground", m_on_ground },
+    { "collision", m_enable_collision },
+    { "movement", m_enable_movement },
+    { "gravity", m_enable_gravity },
+    { "rotation", m_enable_rotation }
+  };
 }
 
 
@@ -671,170 +737,15 @@ void Engine::Object::update_inertia()
   m_I = std::fabs((m_m / (6.f * abs_area)) * I_sum);
 }
 
-
-
-
-Engine::RectObject::RectObject(sf::Vector2f size, sf::Vector2f pos) :
-  Object({
-    { 0.f,    0.f    },
-    { size.x, 0.f    },
-    { size.x, size.y },
-    { 0.f,    size.y }
-  }, pos)
-{}
-
-
-
-
-Engine::CircleObject::CircleObject(float radius, sf::Vector2f pos, unsigned vertex_count) :
-  Object(create_circle(radius, vertex_count), pos)
-{}
-
-
-
-std::vector<sf::Vector2f> Engine::CircleObject::create_circle(
-  float radius, unsigned vertex_count
-)
+Json::ListType Engine::Object::serialize_body() const
 {
-  std::vector<sf::Vector2f> res(vertex_count);
-
-  for (unsigned v = 0; v < vertex_count; ++v) {
-    float angle = 2.f * M_PI / vertex_count * v;
-    res[v] = {
-      (float)(sin(angle) * radius),
-      (float)(cos(angle) * radius)
-    };
+  Json::ListType out;
+  for (size_t i = 0; i < m_body.getVertexCount(); ++i) {
+    out.push_back({
+      Json::Property{ "coords", serialize_vector(m_body[i].position) },
+      Json::Property{ "color",  serialize_color(m_body[i].color) }
+    });
   }
-
-  return res;
+  return out;
 }
 
-// --------------- Light functions ----------------
-
-Engine::Light::Light(float radius, sf::Color color, sf::Vector2f pos, unsigned vertex_count) : 
-  Engine::Object(Engine::CircleObject(radius, pos, vertex_count)),
-  m_radius                  (radius),
-  m_color                   (color),
-  m_pos                     (pos),
-  m_vertex_count            (vertex_count),
-  m_brightness_level        (m_color.a),
-  m_angle                   (2 * M_PI),
-  m_rotation                (0.0f)
-{
-  add_center();
-  SetColor(m_color);
-}
-
-void Engine::Light::SetColor(sf::Color color)
-{
-  m_color = color;
-  Object::SetBodyColor(color);
-  create_gradient();
-}
-
-void Engine::Light::SetRadius(float radius)
-{
-  if (m_radius == radius)
-    return;
-  m_radius = radius;
-
-  auto circle = new Engine::CircleObject(m_radius, m_pos, m_vertex_count);
-
-  m_body = circle->GetBody();
-  SetColor(m_color);
-}
-
-void Engine::Light::SetRadius(float radius, unsigned vertex_count)
-{
-  if (m_radius == radius)
-    return;
-
-  m_radius = radius;
-  m_vertex_count = vertex_count;
-
-  auto circle = new Engine::CircleObject(m_radius, m_pos, m_vertex_count);
-
-  m_body = circle->GetBody();
-
-  add_center();
-  SetColor(m_color);
-}
-
-void Engine::Light::SetAngle(float angle)
-{
-  if (m_angle == angle)
-    return;
-
-  m_angle = angle;
-
-  float y_dot = m_pos.y + m_radius * cos(angle/2);
-
-  for(int it = 0; it < m_vertex_count; ++it)
-  {
-    if (m_body[it].position.y < y_dot)
-    {
-      m_body[it].position = m_pos;
-    }
-    else
-      m_body[it].position = m_body[it].position;
-  }
-  create_gradient();
-}
-
-void Engine::Light::SetPosition (sf::Vector2f pos)
-{
-  if (m_pos == pos)
-    return;
-  
-  m_pos = pos;
-
-  Object::SetPosition(m_pos);
-  create_gradient();
-}
-
-void Engine::Light::SetRotation (float angle)
-{
-  if (m_angle >= 2 * M_PI)
-    return;
-
-  float delta = angle - m_rotation;
-
-  Object::Rotate(delta, m_pos);
-  
-  m_rotation = angle;
-}
-
-
-void Engine::Light::SetBrightnessLevel(uint8_t brightness_level)
-{
-  if (m_brightness_level == brightness_level)
-    return;
-
-  m_brightness_level = brightness_level;
-  m_color.a = m_brightness_level;
-  create_gradient();
-}
-
-
-void Engine::Light::create_gradient()
-{
-  for(int it = 0; it < m_vertex_count; ++it)
-  {
-    if (m_body[it].position == m_pos)
-      m_body[it].color = m_color;
-    else
-      m_body[it].color = {m_color.r, m_color.g, m_color.b, 0};
-  }
-}
-
-void Engine::Light::add_center()
-{
-  m_body.resize(m_vertex_count + 2);
-  m_body[m_vertex_count].position = m_body[0].position;
-  m_body[0].position = m_pos;
-  m_body[m_vertex_count + 1].position = m_body[1].position;
-  
-  m_body[m_vertex_count].color = m_color;
-  m_body[m_vertex_count + 1].color = m_color;
-  m_vertex_count += 2;
-}

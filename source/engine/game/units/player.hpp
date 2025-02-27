@@ -7,29 +7,36 @@
 #include "engine/game/game.hpp"
 #include "engine/objects/objects.hpp"
 #include "system/user-input.hpp"
-#include "misc/animated-sprite.hpp"
 
 
-class Engine::Game::Player : Engine::RectObject
+class Engine::Game::Player : Object
 {
 public:
 
-  Player(TextureAtlas idle, TextureAtlas run);
+  Player(
+    TextureAtlas           idle,
+    TextureAtlas           run,
+    const ResourceManager &rm
+  );
 
   ~Player();
 
 
-  void Update(uint64_t dt, const UserInput &user_input);
-  virtual void Render(sf::RenderTarget &target) override { RectObject::Render(target); }
+  void Update(
+    uint64_t               dt,
+    const UserInput       &user_input,
+    const ResourceManager &rm
+  );
+  virtual void Render(sf::RenderTarget &target) override { Object::Render(target); }
 
-  sf::Vector2f  GetPosition () const { return RectObject::GetPosition(); }
+  sf::Vector2f  GetPosition () const { return Object::GetPosition(); }
   sf::FloatRect GetBounds   () const { return GetBody().getBounds(); }
   float         GetMoveSpeed() const { return m_ms; }
 
   Object&             Object()       { return *this; }
   const class Object& Object() const { return *this; }
 
-  void SetPosition(const sf::Vector2f &pos) { RectObject::SetPosition(pos); }
+  void SetPosition(const sf::Vector2f &pos) { Object::SetPosition(pos); }
 
 private:
 

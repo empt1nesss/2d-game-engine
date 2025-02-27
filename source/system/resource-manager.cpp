@@ -12,12 +12,18 @@ bool ResourceManager::LoadTexture(const std::string &name, const std::string fil
   return true;
 }
 
-sf::Texture* ResourceManager::GetTexture(const std::string &name) const
+const sf::Texture* ResourceManager::GetTexture(const std::string &name) const
 {
   auto texture = m_textures.find(name);
-  if (texture == m_textures.end())
-    throw NOT_FOUND_EXC;
+  if (texture == m_textures.end()) {
+    return &m_default_texture;
+  }
 
   return &texture->second;
+}
+
+std::string ResourceManager::GetMapPath(const std::string &name) const
+{
+  return "assets/" + name + ".map";
 }
 
