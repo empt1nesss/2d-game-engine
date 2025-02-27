@@ -30,7 +30,9 @@ AnimatedSprite::AnimatedSprite(
     val["texture_atlas"]["rows"].GetInt() *
     val["texture_atlas"]["cols"].GetInt()
   ),
-  m_frame_time(val["frame_time"].GetFloat())
+  m_frame_time(val["frame_time"].GetFloat()),
+  m_origin(deserialize_vector(val["origin"])),
+  m_rotation(val["rotation"].GetFloat())
 {
   SwitchAnimation(TextureAtlas().Deserialize(val["texture_atlas"]), rm);
 }
