@@ -21,7 +21,6 @@ Engine::Light::Light(float radius, sf::Color color, sf::Vector2f pos, unsigned v
   add_center();
   SetColor(m_color);
 
-  ZIndex = 100;
   DrawBody = true;
   EnableMovement(true);
   EnableRotation(true);
