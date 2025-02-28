@@ -14,7 +14,6 @@ Engine::Light::Light(float radius, sf::Color color, sf::Vector2f pos, unsigned v
   m_color           (color),
   m_pos             (pos),
   m_vertex_count    (vertex_count),
-  m_brightness_level(m_color.a),
   m_angle           (2 * M_PI),
   m_rotation        (0.0f)
 {
@@ -40,7 +39,9 @@ void Engine::Light::SetRadius(float radius)
   m_radius = radius;
 
   *(Engine::Object*)this = Object::CreateCircleObj(m_radius, m_pos, m_vertex_count);
+  DrawBody = true;
   
+  add_center();
   SetColor(m_color);
 }
 
@@ -52,7 +53,8 @@ void Engine::Light::SetRadius(float radius, unsigned vertex_count)
   m_radius = radius;
   m_vertex_count = vertex_count;
 
-  *(Engine::Object*)this = Object::CreateCircleObj(m_radius, m_pos, m_vertex_count);
+  *(Engine::Object*)this = Object::CreateCircleObj(m_radius, m_pos, vertex_count);
+  DrawBody = true;
 
   add_center();
   SetColor(m_color);
@@ -92,8 +94,10 @@ void Engine::Light::SetPosition (sf::Vector2f pos)
 
 void Engine::Light::SetRotation (float angle)
 {
-  if (m_angle >= 2 * M_PI)
-    return;
+  while (m_angle < 0)
+    m_angle += 2 * M_PI;
+  while (m_angle >= 2 * M_PI)
+    m_angle -= 2 * M_PI;
 
   float delta = angle - m_rotation;
 
@@ -103,13 +107,12 @@ void Engine::Light::SetRotation (float angle)
 }
 
 
-void Engine::Light::SetBrightnessLevel(uint8_t brightness_level)
+void Engine::Light::SetAlpha(uint8_t a)
 {
-  if (m_brightness_level == brightness_level)
+  if (m_color.a == a)
     return;
 
-  m_brightness_level = brightness_level;
-  m_color.a = m_brightness_level;
+  m_color.a = a;
   create_gradient();
 }
 
@@ -136,4 +139,3 @@ void Engine::Light::add_center()
   m_body[m_vertex_count + 1].color = m_color;
   m_vertex_count += 2;
 }
-

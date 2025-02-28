@@ -2,6 +2,11 @@
 #include "engine/objects/objects.hpp"
 #include "engine/game/units/player.hpp"
 
+#if defined (_WIN32)
+#include <corecrt_math_defines.h>
+#elif defined(__linux)
+#define _USE_MATH_DEFINES
+#endif 
 #include <cmath>
 
 
@@ -14,11 +19,11 @@ Engine::Game::Game(const Map &map, const ResourceManager &res_mgr) :
   update_view(0);
 
   Light ball = Light(100.f, sf::Color(0,0,255,100), {800.f, 600.f}, 12);
-  // ball.SetRadius(150.f, 36);
-  // ball.SetColor(sf::Color::Yellow);
-  // ball.SetBrightnessLevel(150);
-  // ball.SetAngle(M_PI / 2.f);
-  // ball.SetRotation(M_PI / 2.f);
+  ball.SetRadius(150.f, 36);
+  ball.SetColor(sf::Color(255, 255, 0, 10));
+  ball.SetAngle(M_PI / 2.f);
+  ball.SetRotation(M_PI / 2.f);
+  // ball.SetBrightnessLevel(10);
 
   m_map.Objects.emplace_back(std::move(ball.Object()));
 

@@ -10,23 +10,26 @@ class Engine::Light : Engine::Object
 public:
   
   Light(float radius, sf::Color color, sf::Vector2f pos={ 0.f, 0.f }, unsigned vertix = 24);
+  Light(const Json::Value &val);
 
-  void SetColor           (sf::Color    color);
-  void SetRadius          (float        radius);
-  void SetRadius          (float        radius, unsigned vertex_count);
-  void SetAngle           (float        angle);
-  void SetPosition        (sf::Vector2f pos);
-  void SetRotation        (float        angle);
-  void SetBrightnessLevel (uint8_t brightness_level);
+  void SetColor   (sf::Color    color);
+  void SetRadius  (float        radius);
+  void SetRadius  (float        radius, unsigned vertex_count);
+  void SetAngle   (float        angle);
+  void SetPosition(sf::Vector2f pos);
+  void SetRotation(float        angle);
+  void SetAlpha   (uint8_t a);
 
-  sf::Color    GetColor   () const {return m_color;    };
-  float        GetRadius  () const {return m_radius;   };
-  float        GetAngle   () const {return m_angle;    };
-  sf::Vector2f GetPosition() const {return m_pos;      }; 
-  float        GetRotation() const {return m_rotation; };
+  sf::Color    GetColor   () const { return m_color;    };
+  float        GetRadius  () const { return m_radius;   };
+  float        GetAngle   () const { return m_angle;    };
+  sf::Vector2f GetPosition() const { return m_pos;      }; 
+  float        GetRotation() const { return m_rotation; };
 
   Object&             Object()       { return *this; }
   const class Object& Object() const { return *this; }
+
+  Json::Value Serialize() const;
 
 private:
 
@@ -39,7 +42,6 @@ private:
   sf::Vector2f m_pos;
   float        m_rotation;
   unsigned     m_vertex_count;
-  uint8_t      m_brightness_level;
 
 };
 

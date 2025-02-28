@@ -70,7 +70,7 @@ public:
 
   void SetPosition      (sf::Vector2f pos);
   void Move             (sf::Vector2f s);
-  void Rotate           (float        rad,          sf::Vector2f center);
+  void Rotate           (float        rad,  sf::Vector2f center);
   void SetBodyColor     (sf::Color    color);
 
   void SetRotationCenter(sf::Vector2f pos);
