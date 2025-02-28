@@ -67,7 +67,7 @@ void Engine::init_game()
   Map map;
   map.Load("map1", m_resource_manager);
 
-  m_game = new Game(map, m_resource_manager);
+  m_game = new Game(m_resource_manager);
 }
 
 void Engine::poll_window_events()

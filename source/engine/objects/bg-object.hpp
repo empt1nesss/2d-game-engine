@@ -24,7 +24,8 @@ public:
   void Update(uint64_t          dt);
   void Render(sf::RenderTarget &target);
 
-  float GetDepth() const { return m_depth; }
+  float GetDepth () const { return m_depth; }
+  int   GetZIndex() const { return ZIndex; }
 
   void SetDepth(float depth);
 
@@ -38,6 +39,9 @@ public:
 
   AnimatedSprite&       GetSprite()       { return Object::GetSprite(); }
   const AnimatedSprite& GetSprite() const { return Object::GetSprite(); }
+
+  Object&       GetObject()       { return *(Object*)this; }
+  const Object& GetObject() const { return *(Object*)this; }
 
   Json::Value Serialize() const;
 
